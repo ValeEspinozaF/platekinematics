@@ -6,36 +6,20 @@
 //#include "activate-overloads.h"
 
 /* Main functions */
-inline float to_degrees(float radians) {
+inline double to_degrees(double radians) {
     return radians * (180.0 / M_PI);
 }
 
-/* 
-float[] to_degrees_vector(float[] radians) {
-    //float[] degrees = new float[radians.Length];
-    float degrees[radians.Length];
-    for(i = 0; i < radians.Length; i++) degrees[i] = radians[i] * (180.0 / M_PI);
-    return degrees;
-}
 
-#define to_degrees(...) OVERLOAD(to_degrees, (__VA_ARGS__), \
-    (to_degrees_scalar, (float)), \
-    (to_degrees_vector, (float[])) \
-)
-
-#define OVERLOAD_ARG_TYPES (float, float[])
-#define OVERLOAD_FUNCTIONS (to_degrees)
-*/
-
-inline float to_radians(float degrees) {
+inline double to_radians(double degrees) {
     return degrees * (M_PI / 180.0);
 }
 
 
-float * sph2cart(float lon, float lat, float mag) {
-    static float r[3];
-    float lon_rad = to_radians(lon);
-    float lat_rad = to_radians(lat);
+double * sph2cart(double lon, double lat, double mag) {
+    static double r[3];
+    double lon_rad = to_radians(lon);
+    double lat_rad = to_radians(lat);
 
     r[0] = mag * cos(lon_rad) * cos(lat_rad);
     r[1] = mag * sin(lon_rad) * cos(lat_rad);
@@ -45,8 +29,8 @@ float * sph2cart(float lon, float lat, float mag) {
 }
 
 
-float * cart2sph(float x, float y, float z) {
-    static float r[3];
+double * cart2sph(double x, double y, double z) {
+    static double r[3];
     r[0] = to_degrees(atan2(y, x));
     r[1] = to_degrees(atan2(z, sqrt(x * x + y * y)));
     r[2] = sqrt(x * x + y * y + z * z);
@@ -57,7 +41,7 @@ float * cart2sph(float x, float y, float z) {
 static PyObject *py_to_degrees(PyObject *self, PyObject *args) {
 
   /* Declare variables */
-  float n_num, result;
+  double n_num, result;
 
   /* Parse argument from python to local variable (n_num) */
   if (!PyArg_ParseTuple(args, "f", &n_num)) {
@@ -73,7 +57,7 @@ static PyObject *py_to_degrees(PyObject *self, PyObject *args) {
 
 
 static PyObject *py_to_radians(PyObject *self, PyObject *args) {
-  float n_num, result;
+  double n_num, result;
 
   if (!PyArg_ParseTuple(args, "f", &n_num)) {
     return NULL;
@@ -85,8 +69,8 @@ static PyObject *py_to_radians(PyObject *self, PyObject *args) {
 
 
 static PyObject *py_sph2cart(PyObject *self, PyObject *args) {
-  float lon, lat, mag;
-  float *result;
+  double lon, lat, mag;
+  double *result;
 
   if (!PyArg_ParseTuple(args, "fff", &lon, &lat, &mag)) {
     return NULL;
@@ -97,8 +81,8 @@ static PyObject *py_sph2cart(PyObject *self, PyObject *args) {
 }
 
 static PyObject *py_cart2sph(PyObject *self, PyObject *args) {
-  float x, y, z;
-  float *result;
+  double x, y, z;
+  double *result;
 
   if (!PyArg_ParseTuple(args, "fff", &x, &y, &z)) {
     return NULL;
@@ -111,10 +95,10 @@ static PyObject *py_cart2sph(PyObject *self, PyObject *args) {
 
 /* Methods contained in the module */
 static PyMethodDef sphericalMethods[] = {
-  {"to_degrees", py_to_degrees, METH_VARARGS, "Convert angles from radians to degrees"},
-  {"to_radians", py_to_radians, METH_VARARGS, "Convert angles from degrees to radians"},
-  {"sph2cart", py_sph2cart, METH_VARARGS, "Convert spherical coordinates to cartesian coordinates"},
-  {"cart2sph", py_cart2sph, METH_VARARGS, "Convert cartesian coordinates to spherical coordinates"},
+  {"to_degrees", py_to_degrees, METH_VARARGS, "Convert angles from radians to degrees."},
+  {"to_radians", py_to_radians, METH_VARARGS, "Convert angles from degrees to radians."},
+  {"sph2cart", py_sph2cart, METH_VARARGS, "Convert spherical coordinates to cartesian coordinates. Both input and outputs are expressed in degrees. "},
+  {"cart2sph", py_cart2sph, METH_VARARGS, "Convert cartesian coordinates to spherical coordinates. Both input and outputs are expressed in degrees. "},
   {NULL, NULL, 0, NULL}
 };
 
