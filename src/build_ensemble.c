@@ -45,7 +45,7 @@ void correlated_ensemble_3d(const gsl_matrix *matrix, int Nsize) {
     gsl_rng_free(rng);
     gsl_matrix_free(data);
     gsl_matrix_free(ndata);
-} */
+} 
 
 
 
@@ -92,12 +92,14 @@ static PyObject *py_build_fr_ensemble(PyObject *self, PyObject *args) {
     npy_intp dims[2] = {result->size1, result->size2};
     PyObject *np_array = PyArray_SimpleNewFromData(2, dims, NPY_DOUBLE, result->data);
 
-    /* is this needed? */
     gsl_matrix_free(result);
     PyMem_Free(dims);
 
     return np_array;
 }
+
+
+
 
 
 static PyMethodDef build_ensemble_methods[] = {
@@ -117,3 +119,5 @@ PyMODINIT_FUNC PyInit_build_ensemble(void) {
     import_array(); // Initialize NumPy API
     return PyModule_Create(&build_ensemble);
 }
+
+*/

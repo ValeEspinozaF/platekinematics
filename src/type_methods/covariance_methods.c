@@ -9,7 +9,7 @@ gsl_matrix * cov_to_matrix(struct FiniteRotSph *FRs) {
     cov = &fr_sph->Covariance;
     */
 
-    const struct Covariance *cov = &FRs->Covariance;
+    Covariance *cov = &FRs->Covariance;
 
     // Create and populate the covariance matrix
     gsl_matrix *m = gsl_matrix_calloc(3, 3);
