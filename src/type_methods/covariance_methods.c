@@ -2,7 +2,7 @@
 #include <gsl/gsl_matrix.h>
 
 // Function to convert Covariance to a matrix
-gsl_matrix * cov_to_matrix(struct FiniteRotSph *FRs) {
+gsl_matrix * cov_to_matrix(struct FiniteRot *FRs) {
 
     /*
     const struct Covariance *cov = NULL;

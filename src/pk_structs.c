@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "types/covariance.c"
-#include "types/myobject.c"
+#include "types/finrot.c"
 
 
 static PyModuleDef pk_structs = {
@@ -17,7 +17,7 @@ PyMODINIT_FUNC PyInit_pk_structs(void) {
     if (PyType_Ready(&CovarianceType) < 0)
         return NULL;
 
-    if (PyType_Ready(&MyObjectType) < 0)
+    if (PyType_Ready(&FiniteRotationType) < 0)
         return NULL;
 
     m = PyModule_Create(&pk_structs);
@@ -27,7 +27,7 @@ PyMODINIT_FUNC PyInit_pk_structs(void) {
     Py_INCREF(&CovarianceType);
     PyModule_AddObject(m, "Covariance", (PyObject *)&CovarianceType);
 
-    Py_INCREF(&MyObjectType);
-    PyModule_AddObject(m, "MyObject", (PyObject *)&MyObjectType);
+    Py_INCREF(&FiniteRotationType);
+    PyModule_AddObject(m, "FiniteRotation", (PyObject *)&FiniteRotationType);
     return m;
 }

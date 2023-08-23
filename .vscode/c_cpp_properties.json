@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
+                "C:/Users/nbt571/Documents/C_repos/platekinematics/src/types",
                 "C:/Users/nbt571/Anaconda3/include",
                 "C:/Users/nbt571/Anaconda3/lib/site-packages/numpy/core/include"
             ],

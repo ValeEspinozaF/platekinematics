@@ -1,5 +1,11 @@
 {
     "files.associations": {
-        "finite_rotation.h": "c"
+        "system_error": "c",
+        "xtr1common": "c",
+        "initializer_list": "c",
+        "list": "c",
+        "type_traits": "c",
+        "xstring": "c",
+        "xutility": "c"
     }
 }
