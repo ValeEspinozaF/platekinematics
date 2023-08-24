@@ -1,7 +1,18 @@
 #include <Python.h>
+#include "structmember.h"
 #include "covariance.h"
 #include "../parse_array.c"
 
+
+static PyMemberDef Covariance_members[] = {
+    {"C11", T_DOUBLE, offsetof(Covariance, C11), 0, "First element of the covariance matrix"},
+    {"C12", T_DOUBLE, offsetof(Covariance, C12), 0, "Second element of the covariance matrix"},
+    {"C13", T_DOUBLE, offsetof(Covariance, C13), 0, "Third element of the covariance matrix"},
+    {"C22", T_DOUBLE, offsetof(Covariance, C22), 0, "Fourth element of the covariance matrix"},
+    {"C23", T_DOUBLE, offsetof(Covariance, C23), 0, "Fifth element of the covariance matrix"},
+    {"C33", T_DOUBLE, offsetof(Covariance, C33), 0, "Sixth element of the covariance matrix"},
+    {NULL} 
+};
 
 static PyObject* Covariance_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     Covariance *self;
@@ -13,11 +24,12 @@ static PyObject* Covariance_new(PyTypeObject *type, PyObject *args, PyObject *kw
         return NULL;
     }
 
-    if (PyTuple_Size(args) == 0){
-        arg_list = (double *)malloc(6 * sizeof(double));
+    if (PyTuple_Size(args) == 0 || args == NULL){
+        arg_list = (double *)malloc((6 + 1) * sizeof(double));
+        arg_list[0] = 6.0;
         double list[] = {1.0, 0.0, 0.0, 1.0, 0.0, 1.0}; // default constructor
         for (int i = 0; i < 6; i++) {
-                arg_list[i] = list[i];
+                arg_list[i + 1] = list[i];
             }
 
     } else if (PyTuple_Size(args) == 1) {
@@ -26,11 +38,6 @@ static PyObject* Covariance_new(PyTypeObject *type, PyObject *args, PyObject *kw
         }
 
         arg_list = parse_double_array(py_obj); // args constructor
-
-        char message[256];
-        sprintf(message, "arg_list size: %i\n", (int)arg_list[0]);
-        PySys_WriteStdout(message);
-
         if (arg_list == NULL) {
             return NULL;
         } 
@@ -61,12 +68,12 @@ static PyObject* Covariance_new(PyTypeObject *type, PyObject *args, PyObject *kw
         }
     }
 
+    free(arg_list);
     
     
-    char message[256];
-    sprintf(message, "Covariance_new method called: C11=%f, C12=%f, C13=%f, C22=%f, C23=%f, C33=%f\n",
+    char message[120];
+    sprintf(message, "Covariance_new method called: C11=%.2e, C12=%.2e, C13=%.2e, C22=%.2e, C23=%.2e, C33=%.2e\n",
             self->C11, self->C12, self->C13, self->C22, self->C23, self->C33);
-
     PySys_WriteStdout(message);
 
     return (PyObject *)self;
@@ -75,9 +82,8 @@ static PyObject* Covariance_new(PyTypeObject *type, PyObject *args, PyObject *kw
 
 // Representation of Covariance object
 static PyObject* Covariance_repr(Covariance *self) {
+    char buffer[100];
     const char *format = "Covariance(C11=%.2e, C12=%.2e, C13=%.2e, C22=%.2e, C23=%.2e, C33=%.2e)";
-    char buffer[256];  // Adjust the buffer size as needed
-
     snprintf(buffer, sizeof(buffer), format,
              self->C11, self->C12, self->C13, self->C22, self->C23, self->C33);
 
@@ -237,10 +243,12 @@ static PyMethodDef Covariance_methods[] = {
 };
 
 
+
 static PyTypeObject CovarianceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.Covariance",
     .tp_doc = "Covariance object with attributes C11-C33",
+    .tp_members = Covariance_members,
     .tp_repr = (reprfunc)Covariance_repr,
     .tp_basicsize = sizeof(Covariance),
     .tp_itemsize = 0,

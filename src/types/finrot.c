@@ -1,6 +1,15 @@
 #include <Python.h>
 #include "finrot.h"
 
+static PyMemberDef FiniteRotation_members[] = {
+    {"Lon", T_DOUBLE, offsetof(FiniteRot, Lon), 0, "Longitude of the rotation axis in degrees-East."},
+    {"Lat", T_DOUBLE, offsetof(FiniteRot, Lat), 0, "Latitude of the rotation axis in degrees-North."},
+    {"Angle", T_DOUBLE, offsetof(FiniteRot, Angle), 0, "Angle of rotation in degrees."},
+    {"Time", T_DOUBLE, offsetof(FiniteRot, Time), 0, "Age of rotation in million years."},
+    {"Covariance", T_OBJECT_EX, offsetof(FiniteRot, Covariance), 0, "Covariance in radians²."},
+    {NULL} 
+};
+
 
 static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     FiniteRot *self;
@@ -66,26 +75,8 @@ static PyObject* FiniteRotation_get_Time(FiniteRot *self, void *closure) {
 }
 
 static PyObject* FiniteRotation_get_Covariance(FiniteRot *self, void *closure) {
-    //PyObject *covariance_args = PyTuple_New(0); 
-    //PyFloat_FromDouble(self->C11)
-    PyObject *covariance_instance = Covariance_new(&CovarianceType, NULL, NULL);
-    //Py_DECREF(covariance_args);  
-
-    if (covariance_instance == NULL) {
-        return NULL;
-    }
-
-    Covariance *covariance = (Covariance *)covariance_instance;
-    covariance->C11 = self->Covariance.C11;
-    covariance->C12 = self->Covariance.C12;
-    covariance->C13 = self->Covariance.C13;
-    covariance->C22 = self->Covariance.C22;
-    covariance->C23 = self->Covariance.C23;
-    covariance->C33 = self->Covariance.C33; 
-
-    return covariance_instance;
-    //Covariance *cov_instance = &(self->Covariance);
-    //return (PyObject *)cov_instance;
+    Covariance *cov_instance = &(self->Covariance);
+    return (PyObject *)cov_instance;
 } 
 
 
@@ -172,6 +163,7 @@ static PyTypeObject FiniteRotationType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.FiniteRotation",
     .tp_doc = "FiniteRotation object",
+    .tp_members = FiniteRotation_members,
     .tp_repr = (reprfunc)FiniteRotation_repr,
     .tp_basicsize = sizeof(FiniteRot),
     .tp_itemsize = 0,

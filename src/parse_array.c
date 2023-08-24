@@ -7,11 +7,11 @@ static double* parse_numpy_array(PyObject *py_obj) {
     double* output_list;
     int n;
 
-    /* Attempt to extract buffer information from it */
     if (PyObject_GetBuffer(py_obj, &buffer, PyBUF_ANY_CONTIGUOUS | PyBUF_FORMAT) == -1){
         return NULL;
     }
-  
+    
+    /* Check the dimensions of the array */
     if (buffer.ndim != 1){
         PyErr_SetString(PyExc_TypeError, "Input array must be one-dimensional");
         PyBuffer_Release(&buffer);
@@ -37,7 +37,6 @@ static double* parse_numpy_array(PyObject *py_obj) {
     }
 
     return output_list;
-    //return (double *)buffer.buf;
 }
 
 
