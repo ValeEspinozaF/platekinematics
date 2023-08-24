@@ -1,7 +1,7 @@
 #include <Python.h>
 #include "structmember.h"
-#include "covariance.h"
 #include "../parse_array.c"
+#include "covariance.h"
 
 
 static PyMemberDef Covariance_members[] = {

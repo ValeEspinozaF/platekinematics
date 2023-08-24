@@ -6,6 +6,9 @@
         "list": "c",
         "type_traits": "c",
         "xstring": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "finrot.h": "c",
+        "pk_structs.h": "c",
+        "gsl_matrix.h": "c"
     }
 }

@@ -1,6 +1,4 @@
-#include <Python.h>
-#include "types/covariance.c"
-#include "types/finrot.c"
+#include "pk_structs.h"
 
 
 static PyModuleDef pk_structs = {

@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "finrot.h"
+#include "../type_methods/finrot_methods.c"
 
 static PyMemberDef FiniteRotation_members[] = {
     {"Lon", T_DOUBLE, offsetof(FiniteRot, Lon), 0, "Longitude of the rotation axis in degrees-East."},
@@ -159,6 +159,15 @@ static PyGetSetDef FiniteRotation_getsetters[] = {
     {NULL}
 };
 
+
+static PyMethodDef FiniteRotation_methods[] = {
+    {"build_ensemble", py_build_fr_ensemble, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
+    {NULL, NULL, 0, NULL}
+};
+
+
+
+
 static PyTypeObject FiniteRotationType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.FiniteRotation",
@@ -171,5 +180,5 @@ static PyTypeObject FiniteRotationType = {
     .tp_new = FiniteRotation_new,
     .tp_dealloc = (destructor)FiniteRotation_dealloc,
     .tp_getset = FiniteRotation_getsetters,
-    //.tp_methods = FiniteRotation_methods,
+    .tp_methods = FiniteRotation_methods,
 };

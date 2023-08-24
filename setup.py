@@ -3,14 +3,10 @@ import numpy as np
 
 PACKAGE_NAME = "platekinematics"
 
-build_ensemble_module = Extension(
-    "build_ensemble",
-    sources = [r"src\build_ensemble.c"], 
-    #define_macros=[('GSL_DLL', None)],
-    library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-    libraries=['gsl', 'gslcblas'],
-    ),
-
+build_ = Extension("build_ensemble", sources = [r"src\build_ensemble.c"], 
+                           #define_macros=[('GSL_DLL', None)],
+                           library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
+                           libraries=['gsl', 'gslcblas'])
 
 setup(
     name=PACKAGE_NAME,
@@ -23,6 +19,8 @@ setup(
     ext_package="platekinematics",
     ext_modules=[Extension("maths", [r"src/maths.c"]),
                  Extension("spherical_functions", [r"src/spherical_functions.c"]),
-                 Extension("pk_structs", [r"src/pk_structs.c"]),
+                 Extension("pk_structs", [r"src/pk_structs.c"],
+                           library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
+                           libraries=['gsl', 'gslcblas']),
                  ]
 )
