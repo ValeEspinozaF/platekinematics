@@ -9,6 +9,11 @@
         "xutility": "c",
         "finrot.h": "c",
         "pk_structs.h": "c",
-        "gsl_matrix.h": "c"
+        "gsl_matrix.h": "c",
+        "xlocale": "c",
+        "cmath": "c",
+        "eulervec.h": "c",
+        "utility": "c",
+        "gsl_rng.h": "c"
     }
 }

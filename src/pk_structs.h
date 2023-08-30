@@ -9,5 +9,6 @@
 
 #include "types/covariance.c"
 #include "types/finrot.c"
+#include "types/eulervec.c"
 
 #endif // PK_STRUCT_H

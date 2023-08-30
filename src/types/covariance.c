@@ -69,16 +69,8 @@ static PyObject* Covariance_new(PyTypeObject *type, PyObject *args, PyObject *kw
     }
 
     free(arg_list);
-    
-    
-    char message[120];
-    sprintf(message, "Covariance_new method called: C11=%.2e, C12=%.2e, C13=%.2e, C22=%.2e, C23=%.2e, C33=%.2e\n",
-            self->C11, self->C12, self->C13, self->C22, self->C23, self->C33);
-    PySys_WriteStdout(message);
-
     return (PyObject *)self;
 }
-
 
 // Representation of Covariance object
 static PyObject* Covariance_repr(Covariance *self) {
@@ -202,48 +194,6 @@ static PyGetSetDef Covariance_getsetters[] = {
     {NULL}
 };
 
-void set_all_to_value(Covariance *cov, double value) {
-    cov->C11 = value;
-    cov->C12 = value;
-    cov->C13 = value;
-    cov->C22 = value;
-    cov->C23 = value;
-    cov->C33 = value;
-}
-
-
-static PyObject* py_set_all_to_value(PyObject *self, PyObject *args) {
-    Covariance *cov = (Covariance*)self;
-    double value;
-
-    if (!PyArg_ParseTuple(args, "d", &value)) {
-        return NULL;
-    }
-
-    // Create a new instance of the Covariance type
-    PyObject *covariance_type = PyObject_GetAttrString((PyObject*)self, "__class__");
-    if (covariance_type == NULL) {
-        return NULL;
-    }
-
-    Covariance *new_cov = (Covariance*)PyObject_CallObject(covariance_type, NULL);
-    Py_DECREF(covariance_type);
-    if (new_cov == NULL) {
-        return NULL;
-    }
-
-    set_all_to_value(new_cov, value);
-
-    return (PyObject*)new_cov;
-}
-
-static PyMethodDef Covariance_methods[] = {
-    {"set_all_to_value", py_set_all_to_value, METH_VARARGS, "Set all attributes to a given value"},
-    {NULL, NULL, 0, NULL} 
-};
-
-
-
 static PyTypeObject CovarianceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.Covariance",
@@ -256,5 +206,4 @@ static PyTypeObject CovarianceType = {
     .tp_new = Covariance_new,
     .tp_dealloc = (destructor)Covariance_dealloc,
     .tp_getset = Covariance_getsetters,
-    .tp_methods = Covariance_methods,
 };

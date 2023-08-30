@@ -11,11 +11,15 @@ static PyModuleDef pk_structs = {
 
 PyMODINIT_FUNC PyInit_pk_structs(void) {
     PyObject *m;
+    import_array(); // Initialize NumPy API
 
     if (PyType_Ready(&CovarianceType) < 0)
         return NULL;
 
     if (PyType_Ready(&FiniteRotationType) < 0)
+        return NULL;
+
+    if (PyType_Ready(&EulerVectorType) < 0)
         return NULL;
 
     m = PyModule_Create(&pk_structs);
@@ -27,5 +31,8 @@ PyMODINIT_FUNC PyInit_pk_structs(void) {
 
     Py_INCREF(&FiniteRotationType);
     PyModule_AddObject(m, "FiniteRotation", (PyObject *)&FiniteRotationType);
+
+    Py_INCREF(&EulerVectorType);
+    PyModule_AddObject(m, "EulerVector", (PyObject *)&EulerVectorType);
     return m;
 }
