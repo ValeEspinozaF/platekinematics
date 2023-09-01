@@ -15,42 +15,67 @@ static PyMemberDef EulerVector_members[] = {
 
 
 static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    EulerVector *self;
-    Covariance *tmp;
     PyObject *lon_obj, *lat_obj, *angvel_obj;
     PyObject *time_range_obj = NULL, *cov = NULL;
     
-    double lon =0.0, lat = 0.0, angvel = 0.0, tr1 = 0.0, tr2 = 0.0;
     int has_covariance;
-
+    double lon, lat, angvel, tr1, tr2;
+    
 
     if (kwds != NULL && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError, "EulerVector() does not accept keyword arguments");
         return NULL;
     }
 
-    if (PyTuple_Size(args) == 0 || args == NULL){
+    if (PyTuple_Size(args) == 0 || args == NULL){ // Default constructor
+        lon = 0.0;
+        lat = 0.0;
+        angvel = 0.0;
+        tr1 = 0.0;
+        tr2 = 0.0;
+        has_covariance = 0;
+
     } else if (PyTuple_Size(args) == 5 || PyTuple_Size(args) == 4) {
 
         if (!PyArg_ParseTuple(args, "OOOO|O", &lon_obj, &lat_obj, &angvel_obj, &time_range_obj, &cov)) {
+            Py_XDECREF(lon_obj);
+            Py_XDECREF(lat_obj);
+            Py_XDECREF(angvel_obj);
+            Py_XDECREF(time_range_obj);
+            Py_XDECREF(cov);
+            PyErr_SetString(PyExc_TypeError, "EulerVector() failed to parse one or more input arguments");
             return NULL;
         }
 
         if (!PyTuple_Check(time_range_obj) || PyTuple_Size(time_range_obj) != 2) {
+            Py_XDECREF(lon_obj);
+            Py_XDECREF(lat_obj);
+            Py_XDECREF(angvel_obj);
+            Py_XDECREF(time_range_obj);
+            Py_XDECREF(cov);
             PyErr_SetString(PyExc_TypeError, "TimeRange must be a tuple of two elements");
             return NULL;
         }
 
         PyObject* value1 = PyTuple_GetItem(time_range_obj, 0);
         PyObject* value2 = PyTuple_GetItem(time_range_obj, 1);
+        Py_XDECREF(time_range_obj);
 
         if (!PyFloat_Check(value1) || !PyFloat_Check(value2)) {
+            Py_XDECREF(lon_obj);
+            Py_XDECREF(lat_obj);
+            Py_XDECREF(angvel_obj);
+            Py_XDECREF(cov);
+            Py_XDECREF(value1);
+            Py_XDECREF(value2);
             PyErr_SetString(PyExc_TypeError, "TimeRange elements must be of type float");
             return NULL;
         }
 
         tr1 = PyFloat_AsDouble(value1);
         tr2 = PyFloat_AsDouble(value2);
+        Py_XDECREF(value1);
+        Py_XDECREF(value2);
 
 
         // Check if Lon, Lat, AngVelocity arguments are doubles
@@ -66,6 +91,9 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
             lon = PyFloat_AsDouble(lon_obj);
             lat = PyFloat_AsDouble(lat_obj);
             angvel = PyFloat_AsDouble(angvel_obj);
+            Py_XDECREF(lon_obj);
+            Py_XDECREF(lat_obj);
+            Py_XDECREF(angvel_obj);
         }
 
         if (cov == NULL) {
@@ -74,9 +102,6 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
             if (PyObject_IsInstance(cov, (PyObject *)&CovarianceType)) {
                 has_covariance = 1;
             } else {
-                Py_XDECREF(lon_obj);
-                Py_XDECREF(lat_obj);
-                Py_XDECREF(angvel_obj);
                 Py_XDECREF(cov);
                 PyErr_SetString(PyExc_TypeError, "Covariance argument must be of type Covariance()");
                 return NULL;
@@ -88,7 +113,7 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         return NULL;
     }
 
-    self = (EulerVector *)type->tp_alloc(type, 0);
+    EulerVector *self = (EulerVector *)type->tp_alloc(type, 0);
     if (self != NULL) {
         self->Lon = lon;
         self->Lat = lat;
@@ -98,10 +123,8 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         self->has_covariance = has_covariance;
 
         if (has_covariance) {
-            tmp = &(self->Covariance);
-            Py_INCREF(cov);
             self->Covariance = *((Covariance *)cov);
-            Py_XDECREF(tmp);
+            //Py_XDECREF(cov);
         }
     }
     return (PyObject *)self;
@@ -235,18 +258,10 @@ static int EulerVector_set_Covariance(EulerVector *self, PyObject *cov_instance,
     }
 
     Covariance *cov = &(self->Covariance);
-    Py_DECREF((PyObject *)cov);
+    Py_XDECREF((PyObject *)cov);
     Py_INCREF(cov_instance);
     self->Covariance = *((Covariance *)cov_instance);
-/*     Covariance *covariance = (Covariance *)cov_instance;
-
-    self->Covariance.C11 = covariance->C11;
-    self->Covariance.C12 = covariance->C12;
-    self->Covariance.C13 = covariance->C13;
-    self->Covariance.C22 = covariance->C22;
-    self->Covariance.C23 = covariance->C23;
-    self->Covariance.C33 = covariance->C33; */
-
+    self->has_covariance = 1;
     return 0;
 } 
 
@@ -264,6 +279,7 @@ static PyGetSetDef EulerVector_getsetters[] = {
 
 static PyMethodDef EulerVector_methods[] = {
     {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "Draws n EulerVector() samples from the covariance of a given Euler vector."},
+    {"build_array", py_build_ev_array, METH_VARARGS, "Draws n Euler vector coordinate samples and stores them in a 3byn array."},
     {NULL, NULL, 0, NULL}
 }; 
 

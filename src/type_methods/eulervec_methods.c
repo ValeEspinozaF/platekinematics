@@ -1,17 +1,23 @@
 #define _USE_MATH_DEFINES
 #include <Python.h>
 #include <math.h>
+#include <stdbool.h>
+#include <numpy/arrayobject.h>
+
 #include "../gsl.h"
 #include "../types/eulervec.h"
-//#include "../spherical_functions.c"
-//#include "covariance_methods.c"
-//#include "../build_ensemble.c"
+
+
+void capsule_cleanup_ev(PyObject *capsule) {
+    void *memory = PyCapsule_GetPointer(capsule, NULL);
+    free(memory);
+}
 
 
 // Convert an Euler vector covariance [radians²/Myr²] to a 3x3 symmetric Matrix [degrees²/Myr²]. 
 gsl_matrix * ev_cov_to_matrix(EulerVector *ev_sph) {
     if (!ev_sph->has_covariance) {
-        PySys_WriteStdout("ev_cov_to_matrix.EulerVector must have a Covariance attribute\n");
+        PySys_WriteStdout("EulerVector must have a Covariance attribute\n");
         return NULL;
     }
 
@@ -25,29 +31,91 @@ gsl_matrix * ev_cov_to_matrix(EulerVector *ev_sph) {
 }
 
 
-// Draw n rotation matrix samples from the covariance of a given finite rotation.
-PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
-    double * ev_cart, *_ev_sph;
+gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
     gsl_matrix *cov_matrix;
     gsl_matrix *correlated_ens;
+    double * ev_cart, *_ev_sph;
+    bool out_spherical;
+
+    //test
+    if (n_size == 5) {
+        PyErr_SetString(PyExc_ValueError, "Nor a 5 for christ sake");
+        return NULL;
+    }
+
+    if (strcmp(coordinate_system, "spherical") == 0) {
+        out_spherical = true;
+
+    } else if (strcmp(coordinate_system, "cartesian") == 0) {
+        out_spherical = false;
+
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Input coordinate_system assigns and invalid coordinate system. Valid options are spherical and cartesian");
+        return NULL; 
+    }
     
-    if (!ev_sph->has_covariance){
+
+    if (ev_sph->has_covariance == 0){
         PyErr_SetString(PyExc_TypeError, "EulerVector must have a Covariance attribute");
         return NULL;
     }
 
     cov_matrix = ev_cov_to_matrix(ev_sph);
+    if (cov_matrix == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Failed transforming covariance elements to matrix\n");
+        return NULL;
+    }
 
     // ** Take action if covariance-matrix has negative or imaginary eigenvalues
-
-    correlated_ens = correlated_ensemble_3d(cov_matrix, n_size);
+    
     ev_cart = sph2cart(ev_sph->Lon, ev_sph->Lat, ev_sph->AngVelocity);
 
-    for (size_t i = 0; i < 3; i++) {
-        for(size_t j = 0; j < n_size; j++) {
-            double current_value = gsl_matrix_get(correlated_ens, i, j);
-            gsl_matrix_set(correlated_ens, i, j, current_value + ev_cart[i]);
+    correlated_ens = correlated_ensemble_3d(cov_matrix, n_size);
+    if (correlated_ens == NULL) {
+        gsl_matrix_free(cov_matrix);
+        PyErr_SetString(PyExc_MemoryError, "Failed to create correlated ensemble matrix");
+        return NULL;
+    }    
+
+    gsl_matrix *ev_ens = gsl_matrix_alloc(3, n_size);
+    gsl_matrix_memcpy(ev_ens, correlated_ens);
+    gsl_matrix_free(correlated_ens);
+    gsl_matrix_free(cov_matrix);
+
+    for(size_t i = 0; i < n_size; i++) {
+        double cx, cy, cz;
+        cx = gsl_matrix_get(ev_ens, 0, i) + ev_cart[0];
+        cy = gsl_matrix_get(ev_ens, 1, i) + ev_cart[1];
+        cz = gsl_matrix_get(ev_ens, 2, i) + ev_cart[2];
+        if (out_spherical) {
+            _ev_sph = cart2sph(cx, cy, cz);
+            gsl_matrix_set(ev_ens, 0, i, _ev_sph[0]);
+            gsl_matrix_set(ev_ens, 1, i, _ev_sph[1]);
+            gsl_matrix_set(ev_ens, 2, i, _ev_sph[2]);
+        } else {
+            gsl_matrix_set(ev_ens, 0, i, cx);
+            gsl_matrix_set(ev_ens, 1, i, cy);
+            gsl_matrix_set(ev_ens, 2, i, cz);
         }
+    }
+
+    return ev_ens;
+}
+
+
+// Draw n rotation matrix samples from the covariance of a given finite rotation.
+PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
+    const char *coordinate_system = "spherical";
+    gsl_matrix *ev_array; 
+
+    ev_array = build_ev_array(ev_sph, n_size, coordinate_system);
+
+    // Fetch potential errors from build_ev_array
+    PyObject *original_type, *original_value, *original_traceback; 
+    PyErr_Fetch(&original_type, &original_value, &original_traceback);
+    if (ev_array == NULL) {
+        PyErr_Restore(original_type, original_value, original_traceback);
+        return NULL;
     }
 
 
@@ -59,21 +127,14 @@ PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
     
     for (int i = 0; i < n_size; ++i) {
         EulerVector *ev = (EulerVector *)PyObject_New(EulerVector, Py_TYPE(ev_sph));
-
         if (ev != NULL) {
-            _ev_sph = cart2sph(
-                gsl_matrix_get(correlated_ens, 0, i), 
-                gsl_matrix_get(correlated_ens, 1, i),
-                gsl_matrix_get(correlated_ens, 2, i));
-
-            ev->Lon = _ev_sph[0];
-            ev->Lat = _ev_sph[1];
-            ev->AngVelocity = _ev_sph[2];
+            ev->Lon = gsl_matrix_get(ev_array, 0, i);
+            ev->Lat = gsl_matrix_get(ev_array, 1, i);
+            ev->AngVelocity = gsl_matrix_get(ev_array, 2, i);
             ev->TimeRange[0] = ev_sph->TimeRange[0];
             ev->TimeRange[1] = ev_sph->TimeRange[1];
-            PyList_SET_ITEM(ev_ens, i, (PyObject*)ev);
             ev->has_covariance = 0;
-
+            PyList_SET_ITEM(ev_ens, i, (PyObject*)ev);
 
         } else {
             PyErr_SetString(PyExc_RuntimeError, "Failed to create EulerVector instance");
@@ -82,16 +143,79 @@ PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
         }
     }
 
-    gsl_matrix_free(cov_matrix);
-    gsl_matrix_free(correlated_ens);
+    gsl_matrix_free(ev_array);
     return ev_ens;
+}
+
+
+PyObject * build_ev_numpy_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
+    gsl_matrix *ev_array = build_ev_array(ev_sph, n_size, coordinate_system);
+
+    // Fetch potential errors from build_ev_array
+    PyObject *original_type, *original_value, *original_traceback;
+    PyErr_Fetch(&original_type, &original_value, &original_traceback);
+    if (ev_array == NULL) {
+        PyErr_Restore(original_type, original_value, original_traceback);
+        return NULL;
+    }
+
+    npy_intp dims[2]; // Create numpy array from gsl_matrix
+    dims[0] = (int)ev_array->size1;
+    dims[1] = (int)ev_array->size2;
+    PyObject *np_array = PyArray_SimpleNewFromData(2, dims, NPY_DOUBLE, (void *)ev_array->data);
+
+    PyObject *capsule = PyCapsule_New(ev_array->data, NULL, capsule_cleanup_ev);
+    PyArray_SetBaseObject((PyArrayObject *) np_array, capsule);
+
+    gsl_matrix_free(ev_array);
+    return np_array; 
+}
+
+
+static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
+    EulerVector *ev_sph = (EulerVector *)self;
+    PyObject *n_size_obj = NULL;
+    int n_size, n_args;
+    const char* coordinate_system = NULL;
+    
+    n_args = (int)PyTuple_Size(args);
+    if (n_args == 1 || n_args == 2) {
+        if (!PyArg_ParseTuple(args, "O|s", &n_size_obj, &coordinate_system)) {
+            PyErr_SetString(PyExc_TypeError, "build_array() expects one or two arguments, an integer with the number of samples and a string assigning the coordinate system of the output matrix");
+            Py_XDECREF(n_size_obj);
+            return NULL;
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "build_array() expects one or two arguments, an integer with the number of samples and a string assigning the coordinate system of the output matrix");
+        return NULL; 
+    } 
+
+    if (PyLong_Check(n_size_obj)) {
+        n_size = (int)PyLong_AsLong(n_size_obj);
+
+    } else if (PyFloat_Check(n_size_obj)) {
+        double float_value = PyFloat_AsDouble(n_size_obj);
+        n_size = (int)float_value;
+
+    } else {
+        Py_XDECREF(n_size_obj);
+        PyErr_SetString(PyExc_TypeError, "build_array() expects an integer or a parsable float");
+        return NULL;
+    }  
+
+    Py_XDECREF(n_size_obj);
+
+    if (coordinate_system == NULL) {
+        coordinate_system = "cartesian";
+    }
+
+    return build_ev_numpy_array(ev_sph, n_size, coordinate_system);
 }
 
 
 static PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args) {
     EulerVector *ev_sph = (EulerVector *)self;
-    PyObject *input_obj;
-    double float_value;
+    PyObject *n_size_obj = NULL;
     int n_size;
     
 
@@ -100,20 +224,24 @@ static PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args) {
         return NULL; 
     }
 
-    if (!PyArg_ParseTuple(args, "O", &input_obj)) {
+    if (!PyArg_ParseTuple(args, "O", &n_size_obj)) {
+        PyErr_SetString(PyExc_TypeError, "Failed to parse input argument");
         return NULL;
     }
 
-    if (PyLong_Check(input_obj)) {
-        PyArg_ParseTuple(args, "i", &n_size);
-    } else if (PyFloat_Check(input_obj)) {
-        PyArg_ParseTuple(args, "d", &float_value);
-        n_size = (int)float_value;
-    } else {
-        Py_DECREF(input_obj);
-        PyErr_SetString(PyExc_TypeError, "build_ensemble() expects an integer or a parsable float");
-    }  
-    Py_DECREF(input_obj);
+    if (PyLong_Check(n_size_obj)) {
+        n_size = (int)PyLong_AsLong(n_size_obj);
 
+    } else if (PyFloat_Check(n_size_obj)) {
+        double float_value = PyFloat_AsDouble(n_size_obj);
+        n_size = (int)float_value;
+
+    } else {
+        Py_XDECREF(n_size_obj);
+        PyErr_SetString(PyExc_TypeError, "build_ensemble() expects an integer or a parsable float");
+        return NULL;
+    }  
+
+    Py_XDECREF(n_size_obj);
     return build_ev_ensemble(ev_sph, n_size);
 }
