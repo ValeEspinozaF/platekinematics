@@ -1,4 +1,6 @@
 #include <Python.h>
+#include <numpy/arrayobject.h>
+#include "gsl.h"
 
 /* Main function */
 inline int square(int num) {
@@ -71,6 +73,36 @@ static PyObject *py_avg(PyObject *self, PyObject *args)
     return Py_BuildValue("d", result);
 }
 
+void capsule_cleanup_numpy(PyObject *capsule) {
+    void *memory = PyCapsule_GetPointer(capsule, NULL);
+    free(memory);
+}
+
+PyObject * build_numpy_array(int n_size) {
+    gsl_matrix *array = gsl_matrix_calloc(3, n_size);
+
+    npy_intp dims[2]; // Create numpy array from gsl_matrix
+    dims[0] = (int)array->size1;
+    dims[1] = (int)array->size2;
+    PyObject *np_array = PyArray_SimpleNewFromData(2, dims, NPY_DOUBLE, (void *)array->data);
+
+    PyObject *capsule = PyCapsule_New(array->data, NULL, capsule_cleanup_numpy);
+    PyArray_SetBaseObject((PyArrayObject *) np_array, capsule);
+
+    gsl_matrix_free(array);
+    return np_array; 
+}
+
+static PyObject *py_build_zero_array(PyObject *self, PyObject *args) {
+    int n_size;
+    
+    if (!PyArg_ParseTuple(args, "i", &n_size)) {
+        PyErr_SetString(PyExc_TypeError, "expected one argument, an integer with the number of samples");
+        return NULL;
+    }
+
+    return build_numpy_array(n_size);
+}
 
 /* Methods contained in the module */
 static PyMethodDef mathsMethods[] = {
@@ -91,5 +123,6 @@ static struct PyModuleDef maths = {
 
 PyMODINIT_FUNC PyInit_maths(void)
 {
+    import_array(); // Initialize NumPy API
     return PyModule_Create(&maths);
 }

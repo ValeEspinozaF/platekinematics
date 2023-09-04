@@ -75,12 +75,16 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
         gsl_matrix_free(cov_matrix);
         PyErr_SetString(PyExc_MemoryError, "Failed to create correlated ensemble matrix");
         return NULL;
-    }    
+    }  
+
+    gsl_matrix_free(cov_matrix);  
+    PySys_WriteStdout("C00 correlated_ens: %lf\n", gsl_matrix_get(correlated_ens, 0, 0));
 
     gsl_matrix *ev_ens = gsl_matrix_alloc(3, n_size);
     gsl_matrix_memcpy(ev_ens, correlated_ens);
     gsl_matrix_free(correlated_ens);
-    gsl_matrix_free(cov_matrix);
+    PySys_WriteStdout("C00 ev_ens: %lf\n", gsl_matrix_get(ev_ens, 0, 0));
+
 
     for(size_t i = 0; i < n_size; i++) {
         double cx, cy, cz;
@@ -98,7 +102,7 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
             gsl_matrix_set(ev_ens, 2, i, cz);
         }
     }
-
+    PySys_WriteStdout("C00 ev_ens after: %lf\n", gsl_matrix_get(ev_ens, 0, 0));
     return ev_ens;
 }
 
@@ -149,7 +153,14 @@ PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
 
 
 PyObject * build_ev_numpy_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
-    gsl_matrix *ev_array = build_ev_array(ev_sph, n_size, coordinate_system);
+    gsl_matrix *ev_array_tmp = build_ev_array(ev_sph, n_size, coordinate_system);
+    gsl_matrix *ev_array = gsl_matrix_alloc(3, n_size);
+    gsl_matrix_memcpy(ev_array, ev_array_tmp);
+    gsl_matrix_free(ev_array_tmp);
+
+    PySys_WriteStdout("C00 ev_array out: %lf\n", gsl_matrix_get(ev_array, 0, 0));
+    PySys_WriteStdout("C10 ev_array out: %lf\n", gsl_matrix_get(ev_array, 1, 0));
+    PySys_WriteStdout("C20 ev_array out: %lf\n", gsl_matrix_get(ev_array, 2, 0));
 
     // Fetch potential errors from build_ev_array
     PyObject *original_type, *original_value, *original_traceback;
@@ -182,7 +193,6 @@ static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
     if (n_args == 1 || n_args == 2) {
         if (!PyArg_ParseTuple(args, "O|s", &n_size_obj, &coordinate_system)) {
             PyErr_SetString(PyExc_TypeError, "build_array() expects one or two arguments, an integer with the number of samples and a string assigning the coordinate system of the output matrix");
-            Py_XDECREF(n_size_obj);
             return NULL;
         }
     } else {
@@ -198,12 +208,9 @@ static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
         n_size = (int)float_value;
 
     } else {
-        Py_XDECREF(n_size_obj);
         PyErr_SetString(PyExc_TypeError, "build_array() expects an integer or a parsable float");
         return NULL;
     }  
-
-    Py_XDECREF(n_size_obj);
 
     if (coordinate_system == NULL) {
         coordinate_system = "cartesian";
@@ -237,11 +244,42 @@ static PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args) {
         n_size = (int)float_value;
 
     } else {
-        Py_XDECREF(n_size_obj);
         PyErr_SetString(PyExc_TypeError, "build_ensemble() expects an integer or a parsable float");
         return NULL;
     }  
 
-    Py_XDECREF(n_size_obj);
     return build_ev_ensemble(ev_sph, n_size);
+}
+
+PyObject * build_numpy_array(int n_size) {
+    gsl_matrix *cA = gsl_matrix_calloc(3, n_size);
+
+    npy_intp dims[2]; // Create numpy array from gsl_matrix
+    dims[0] = (int)cA->size1;
+    dims[1] = (int)cA->size2;
+
+    // Create a new NumPy array and copy data
+    PyObject *np_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    double *np_data = (double *)PyArray_DATA((PyArrayObject *)np_array);
+
+    for (int i = 0; i < cA->size1; ++i) {
+        for (int j = 0; j < cA->size2; ++j) {
+            np_data[i * cA->size2 + j] = gsl_matrix_get(cA, i, j);
+        }
+    }
+
+    gsl_matrix_free(cA);
+    return np_array;
+}
+
+
+static PyObject *py_build_zero_array(PyObject *self, PyObject *args) {
+    int n_size;
+    
+    if (!PyArg_ParseTuple(args, "i", &n_size)) {
+        PyErr_SetString(PyExc_TypeError, "expected one argument, an integer with the number of samples");
+        return NULL;
+    }
+
+    return build_numpy_array(n_size);
 }

@@ -280,6 +280,7 @@ static PyGetSetDef EulerVector_getsetters[] = {
 static PyMethodDef EulerVector_methods[] = {
     {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "Draws n EulerVector() samples from the covariance of a given Euler vector."},
     {"build_array", py_build_ev_array, METH_VARARGS, "Draws n Euler vector coordinate samples and stores them in a 3byn array."},
+    {"build_numpy", py_build_zero_array, METH_VARARGS, "Build a numpy array of 3 by n_size, all elements initialized to zero."},
     {NULL, NULL, 0, NULL}
 }; 
 
