@@ -1,17 +1,13 @@
-#define _USE_MATH_DEFINES
 #include <Python.h>
-#include <math.h>
 #include <stdbool.h>
 #include <numpy/arrayobject.h>
 
 #include "../gsl.h"
 #include "../types/eulervec.h"
+#include "type_methods/covariance_methods.h"
+#include "../spherical_functions.h"
+#include "../build_ensemble.h"
 
-
-void capsule_cleanup_ev(PyObject *capsule) {
-    void *memory = PyCapsule_GetPointer(capsule, NULL);
-    free(memory);
-}
 
 PyObject * build_numpy_array(gsl_matrix *cA) {
     npy_intp dims[2]; 
@@ -32,33 +28,12 @@ PyObject * build_numpy_array(gsl_matrix *cA) {
     return np_array;
 }
 
-// Convert an Euler vector covariance [radians²/Myr²] to a 3x3 symmetric Matrix [degrees²/Myr²]. 
-gsl_matrix * ev_cov_to_matrix(EulerVector *ev_sph) {
-    if (!ev_sph->has_covariance) {
-        PySys_WriteStdout("EulerVector must have a Covariance attribute\n");
-        return NULL;
-    }
-
-    Covariance *cov = &ev_sph->Covariance;
-    gsl_matrix *matrix = to_matrix(cov);
-
-    double scalar = (180.0 / M_PI) * (180.0 / M_PI);
-    gsl_matrix_scale(matrix, scalar);
-
-    return matrix;
-}
-
 
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
     gsl_matrix *cov_matrix, *ev_ens;
     double * ev_cart, *_ev_sph;
     bool out_spherical;
 
-    //test
-    if (n_size == 5) {
-        PyErr_SetString(PyExc_ValueError, "Nor a 5 for christ sake");
-        return NULL;
-    }
 
     if (strcmp(coordinate_system, "spherical") == 0) {
         out_spherical = true;
@@ -95,10 +70,6 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
     }  
 
     gsl_matrix_free(cov_matrix);  
-/*     gsl_matrix *ev_ens = gsl_matrix_alloc(3, n_size);
-    gsl_matrix_memcpy(ev_ens, correlated_ens);
-    gsl_matrix_free(correlated_ens); */
-
 
     for(size_t i = 0; i < n_size; i++) {
         double cx, cy, cz;
@@ -116,7 +87,7 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
             gsl_matrix_set(ev_ens, 2, i, cz);
         }
     }
-    return build_numpy_array(ev_ens);
+    return ev_ens;
 }
 
 
@@ -143,7 +114,7 @@ PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
     }
     
     for (int i = 0; i < n_size; ++i) {
-        EulerVector *ev = (EulerVector *)PyObject_New(EulerVector, Py_TYPE(ev_sph));
+        EulerVector *ev = PyObject_New(EulerVector, &EulerVectorType);
         if (ev != NULL) {
             ev->Lon = gsl_matrix_get(ev_array, 0, i);
             ev->Lat = gsl_matrix_get(ev_array, 1, i);
@@ -167,7 +138,7 @@ PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
 
 static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
     EulerVector *ev_sph = (EulerVector *)self;
-    PyObject *n_size_obj = NULL;
+    PyObject *n_size_obj;
     int n_size, n_args;
     const char* coordinate_system = NULL;
     
@@ -198,7 +169,15 @@ static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
         coordinate_system = "cartesian";
     }
 
-    return build_ev_array(ev_sph, n_size, coordinate_system);
+    gsl_matrix* ev_array = build_ev_array(ev_sph, n_size, coordinate_system);
+    PyObject *original_type, *original_value, *original_traceback; 
+    PyErr_Fetch(&original_type, &original_value, &original_traceback);
+    if (ev_array == NULL) {
+        PyErr_Restore(original_type, original_value, original_traceback);
+        return NULL;
+    }
+
+    return build_numpy_array(ev_array);
 }
 
 
@@ -231,19 +210,4 @@ static PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args) {
     }  
 
     return build_ev_ensemble(ev_sph, n_size);
-}
-
-
-
-
-static PyObject *py_build_zero_array(PyObject *self, PyObject *args) {
-    int n_size;
-    
-    if (!PyArg_ParseTuple(args, "i", &n_size)) {
-        PyErr_SetString(PyExc_TypeError, "expected one argument, an integer with the number of samples");
-        return NULL;
-    }
-
-    gsl_matrix *cA = gsl_matrix_calloc(3, n_size);
-    return build_numpy_array(cA);
 }

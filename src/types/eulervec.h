@@ -1,8 +1,9 @@
+#ifndef EULER_VECTOR_H
+#define EULER_VECTOR_H
+
 #include <Python.h> 
 #include "covariance.h"
 
-#ifndef EULER_VECTOR_H
-#define EULER_VECTOR_H
 
 typedef struct {
     PyObject_HEAD
@@ -21,5 +22,7 @@ typedef struct {
     double (*TimeRange)[2];     // Initial to final age of rotation.
     struct Covariance Covariance; // Covariance in radians²/Myr².
 }; */
+
+extern PyTypeObject EulerVectorType;
 
 #endif // EULER_VECTOR_H

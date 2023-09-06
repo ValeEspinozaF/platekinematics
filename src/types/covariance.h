@@ -1,7 +1,7 @@
-#include <Python.h>
-
 #ifndef COVARIANCE_H
 #define COVARIANCE_H
+
+#include <Python.h>
 
 typedef struct {
     PyObject_HEAD
@@ -14,5 +14,8 @@ typedef struct {
 } Covariance;
 
 void set_all_to_value(Covariance *cov, double value);
+void Covariance_dealloc(Covariance *self);
+extern PyTypeObject CovarianceType;
+
 
 #endif // COVARIANCE_H

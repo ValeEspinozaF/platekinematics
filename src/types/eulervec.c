@@ -1,8 +1,8 @@
 #include <Python.h>
 #include "structmember.h"
 #include "../type_methods/eulervec_methods.c"
-//#include "../parse_array.c"
-//#include "../types/covariance.c"
+#include "../type_methods/eulervec_methods.h"
+#include "../types/covariance.h"
 
 static PyMemberDef EulerVector_members[] = {
     {"Lon", T_DOUBLE, offsetof(EulerVector, Lon), 0, "Longitude of the Euler pole in degrees-East."},
@@ -38,34 +38,20 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
     } else if (PyTuple_Size(args) == 5 || PyTuple_Size(args) == 4) {
 
         if (!PyArg_ParseTuple(args, "OOOO|O", &lon_obj, &lat_obj, &angvel_obj, &time_range_obj, &cov)) {
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angvel_obj);
-            Py_XDECREF(time_range_obj);
-            Py_XDECREF(cov);
             PyErr_SetString(PyExc_TypeError, "EulerVector() failed to parse one or more input arguments");
             return NULL;
         }
 
         if (!PyTuple_Check(time_range_obj) || PyTuple_Size(time_range_obj) != 2) {
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angvel_obj);
-            Py_XDECREF(time_range_obj);
-            Py_XDECREF(cov);
             PyErr_SetString(PyExc_TypeError, "TimeRange must be a tuple of two elements");
             return NULL;
         }
 
         PyObject* value1 = PyTuple_GetItem(time_range_obj, 0);
         PyObject* value2 = PyTuple_GetItem(time_range_obj, 1);
-        Py_XDECREF(time_range_obj);
+
 
         if (!PyFloat_Check(value1) || !PyFloat_Check(value2)) {
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angvel_obj);
-            Py_XDECREF(cov);
             Py_XDECREF(value1);
             Py_XDECREF(value2);
             PyErr_SetString(PyExc_TypeError, "TimeRange elements must be of type float");
@@ -80,10 +66,6 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
 
         // Check if Lon, Lat, AngVelocity arguments are doubles
         if (!PyFloat_Check(lon_obj) || !PyFloat_Check(lat_obj) || !PyFloat_Check(angvel_obj)) {
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angvel_obj);
-            Py_XDECREF(cov);
             PyErr_SetString(PyExc_TypeError, "Lon, Lat and AngVelocity arguments must be doubles");
             return NULL;
 
@@ -91,9 +73,6 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
             lon = PyFloat_AsDouble(lon_obj);
             lat = PyFloat_AsDouble(lat_obj);
             angvel = PyFloat_AsDouble(angvel_obj);
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angvel_obj);
         }
 
         if (cov == NULL) {
@@ -102,7 +81,6 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
             if (PyObject_IsInstance(cov, (PyObject *)&CovarianceType)) {
                 has_covariance = 1;
             } else {
-                Py_XDECREF(cov);
                 PyErr_SetString(PyExc_TypeError, "Covariance argument must be of type Covariance()");
                 return NULL;
             }
@@ -124,7 +102,6 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
 
         if (has_covariance) {
             self->Covariance = *((Covariance *)cov);
-            //Py_XDECREF(cov);
         }
     }
     return (PyObject *)self;
@@ -280,7 +257,6 @@ static PyGetSetDef EulerVector_getsetters[] = {
 static PyMethodDef EulerVector_methods[] = {
     {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "Draws n EulerVector() samples from the covariance of a given Euler vector."},
     {"build_array", py_build_ev_array, METH_VARARGS, "Draws n Euler vector coordinate samples and stores them in a 3byn array."},
-    {"build_numpy", py_build_zero_array, METH_VARARGS, "Build a numpy array of 3 by n_size, all elements initialized to zero."},
     {NULL, NULL, 0, NULL}
 }; 
 

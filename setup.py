@@ -24,5 +24,8 @@ setup(
                  Extension("pk_structs", [r"src/pk_structs.c"],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
                            libraries=['gsl', 'gslcblas']),
+                 Extension("methods", [r"src/average_ensemble.c"],
+                           library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
+                           libraries=['gsl', 'gslcblas']),
                  ]
 )

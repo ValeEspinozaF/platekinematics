@@ -49,13 +49,6 @@ double* to_euler_angles(const FiniteRot *fr_sph) {
 }
 
 
-// Convert a finite rotations covariance [radians^2] to a 3x3 symmetric matrix [radians^2].
-gsl_matrix* fr_cov_to_matrix(FiniteRot *fr_sph) {
-    Covariance *cov = &fr_sph->Covariance;
-    return to_matrix(cov);
-}
-
-
 // Draw n rotation matrix samples from the covariance of a given finite rotation.
 gsl_matrix* build_fr_ensemble(FiniteRot *fr_sph, int n_size) {
     double *eu_angles;
