@@ -11,6 +11,9 @@ typedef struct {
     double Angle; // Angle of rotation in degrees.
     double Time;  // Age of rotation in million years.
     Covariance Covariance;  // Covariance in radians².
+    int has_covariance;
 } FiniteRot;
+
+extern PyTypeObject FiniteRotationType;
 
 #endif // FINITE_ROT_H

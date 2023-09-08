@@ -23,6 +23,11 @@ gsl_matrix* correlated_ensemble_3d(gsl_matrix *cov_matrix, int n_size) {
     gsl_eigen_symmv_sort(eig_va, eig_ve, GSL_EIGEN_SORT_VAL_DESC);
     gsl_rng *rng = gsl_rng_alloc(gsl_rng_default);
 
+    /* Use random seed each run */
+    //time_t current_time = time (0);
+    //gsl_rng_set (rng, (unsigned long int) current_time);
+
+
 
     // Generate random data based on eigenvalues
     double sqrt_x = sqrt(gsl_vector_get(eig_va, 0));

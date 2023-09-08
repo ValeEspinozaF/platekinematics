@@ -4,7 +4,7 @@
 
 void average_vector(gsl_matrix* m_cart, double *ev_cart, double *ev_cov) {
 
-    int N = m_cart->size1;
+    int N = (int)m_cart->size1;
     gsl_vector *x = gsl_vector_alloc(m_cart->size2);
     gsl_vector *y = gsl_vector_alloc(m_cart->size2);
     gsl_vector *z = gsl_vector_alloc(m_cart->size2);

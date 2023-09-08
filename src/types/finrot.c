@@ -15,12 +15,12 @@ static PyMemberDef FiniteRotation_members[] = {
 
 
 static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    FiniteRot *self;
     Covariance *tmp;
-    PyObject *lon_obj, *lat_obj, *angle_obj, *time_obj, *cov = NULL;
+    PyObject *lon_obj, *lat_obj, *angle_obj, *time_obj;
+    PyObject *cov = NULL;
     
-    double lon =0.0, lat = 0.0, angle = 0.0, time = 0.0;
-    cov = Covariance_new(&CovarianceType, PyTuple_New(0), NULL);
+    double lon, lat, angle, time;
+    int has_covariance;
 
 
     if (kwds != NULL && PyDict_Size(kwds) > 0) {
@@ -29,40 +29,41 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
     }
     
     if (PyTuple_Size(args) == 0 || args == NULL){
+        lon = 0.0;
+        lat = 0.0;
+        angle = 0.0;
+        time = 0.0;
+        has_covariance = 0;
+
     } else if (PyTuple_Size(args) == 5 || PyTuple_Size(args) == 4) {
 
         if (!PyArg_ParseTuple(args, "OOOO|O", &lon_obj, &lat_obj, &angle_obj, &time_obj, &cov)) {
+            PyErr_SetString(PyExc_TypeError, "FiniteRotation() failed to parse one or more input arguments");
             return NULL;
         }
 
         // Check if the first four arguments are doubles
         if (!PyFloat_Check(lon_obj) || !PyFloat_Check(lat_obj) ||
             !PyFloat_Check(angle_obj) || !PyFloat_Check(time_obj)) {
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angle_obj);
-            Py_XDECREF(time_obj);
-            Py_XDECREF(cov);
             PyErr_SetString(PyExc_TypeError, "Lon, Lat, Angle and Time arguments must be doubles");
             return NULL;
 
         } else {
-            // Convert the doubles
             lon = PyFloat_AsDouble(lon_obj);
             lat = PyFloat_AsDouble(lat_obj);
             angle = PyFloat_AsDouble(angle_obj);
             time = PyFloat_AsDouble(time_obj);
         }
 
-        if (!PyObject_IsInstance(cov, (PyObject *)&CovarianceType)) {
-            Py_XDECREF(lon_obj);
-            Py_XDECREF(lat_obj);
-            Py_XDECREF(angle_obj);
-            Py_XDECREF(time_obj);
-            Py_XDECREF(cov);
-            PyErr_SetString(PyExc_TypeError, "Covariance argument must be of type Covariance()");
-            return NULL;
-
+        if (cov == NULL) {
+            has_covariance = 0;
+        } else { 
+            if (PyObject_IsInstance(cov, (PyObject *)&CovarianceType)) {
+                has_covariance = 1;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "Covariance argument must be of type Covariance()");
+                return NULL;
+            }
         }
     }
     else {
@@ -71,17 +72,17 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
         return NULL;
     }
 
-    self = (FiniteRot *)type->tp_alloc(type, 0);
+    FiniteRot *self = (FiniteRot *)type->tp_alloc(type, 0);
     if (self != NULL) {
         self->Lon = lon;
         self->Lat = lat;
         self->Angle = angle;
         self->Time = time;
+        self->has_covariance = has_covariance;
 
-        tmp = &(self->Covariance);
-        Py_INCREF(cov);
-        self->Covariance = *((Covariance *)cov);
-        Py_XDECREF(tmp);
+        if (has_covariance) {
+            self->Covariance = *((Covariance *)cov);
+        }
     }
     return (PyObject *)self;
 }
@@ -126,28 +127,19 @@ static PyObject* FiniteRotation_get_Time(FiniteRot *self, void *closure) {
 }
 
 static PyObject* FiniteRotation_get_Covariance(FiniteRot *self, void *closure) {
-/*     PyObject *covariance_args = PyTuple_New(0); 
-    PyObject *covariance_instance = Covariance_new(&CovarianceType, covariance_args, NULL);
-    Py_DECREF(covariance_args);  
-
-    if (covariance_instance == NULL) {
-        return NULL;
+    if (!self->has_covariance) {
+        PySys_WriteStdout("No covariance assigned\n");
+        Py_RETURN_NONE;
     }
 
-    Covariance *covariance = (Covariance *)covariance_instance;
-    covariance->C11 = self->Covariance.C11;
-    covariance->C12 = self->Covariance.C12;
-    covariance->C13 = self->Covariance.C13;
-    covariance->C22 = self->Covariance.C22;
-    covariance->C23 = self->Covariance.C23;
-    covariance->C33 = self->Covariance.C33; 
-
-    return (PyObject *)covariance; */
     Covariance *cov = &(self->Covariance);
-    Py_INCREF(cov);
-    //return self->first;
-    //Covariance *cov_instance = &(self->Covariance);
-    return (PyObject *)cov;
+    if (cov == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "Failed to get Covariance attribute");
+        Py_RETURN_NONE;
+    } else {
+        Py_INCREF(cov);
+        return (PyObject *)cov;
+    }
 } 
 
 
@@ -211,18 +203,10 @@ static int FiniteRotation_set_Covariance(FiniteRot *self, PyObject *cov_instance
     }
 
     Covariance *cov = &(self->Covariance);
-    Py_DECREF((PyObject *)cov);
+    Py_XDECREF((PyObject *)cov);
     Py_INCREF(cov_instance);
     self->Covariance = *((Covariance *)cov_instance);
-/*     Covariance *covariance = (Covariance *)cov_instance;
-
-    self->Covariance.C11 = covariance->C11;
-    self->Covariance.C12 = covariance->C12;
-    self->Covariance.C13 = covariance->C13;
-    self->Covariance.C22 = covariance->C22;
-    self->Covariance.C23 = covariance->C23;
-    self->Covariance.C33 = covariance->C33; */
-
+    self->has_covariance = 1;
     return 0;
 } 
 
@@ -237,7 +221,7 @@ static PyGetSetDef FiniteRotation_getsetters[] = {
 
 
 static PyMethodDef FiniteRotation_methods[] = {
-    {"build_ensemble", py_build_fr_ensemble, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
+    {"build_array", py_build_fr_array, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
     {NULL, NULL, 0, NULL}
 };
 

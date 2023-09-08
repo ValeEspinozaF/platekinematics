@@ -9,7 +9,7 @@
 #include "../build_ensemble.h"
 
 
-PyObject * build_numpy_array(gsl_matrix *cA) {
+PyObject * build_numpy_2Darray(gsl_matrix *cA) {
     npy_intp dims[2]; 
     dims[0] = (int)cA->size1;
     dims[1] = (int)cA->size2;
@@ -30,7 +30,7 @@ PyObject * build_numpy_array(gsl_matrix *cA) {
 
 
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
-    gsl_matrix *cov_matrix, *ev_ens;
+    gsl_matrix *cov_matrix, *correlated_ens;
     double * ev_cart, *_ev_sph;
     bool out_spherical;
 
@@ -62,8 +62,8 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
     
     ev_cart = sph2cart(ev_sph->Lon, ev_sph->Lat, ev_sph->AngVelocity);
 
-    ev_ens = correlated_ensemble_3d(cov_matrix, n_size);
-    if (ev_ens == NULL) {
+    correlated_ens = correlated_ensemble_3d(cov_matrix, n_size);
+    if (correlated_ens == NULL) {
         gsl_matrix_free(cov_matrix);
         PyErr_SetString(PyExc_MemoryError, "Failed to create correlated ensemble matrix");
         return NULL;
@@ -73,21 +73,21 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
 
     for(size_t i = 0; i < n_size; i++) {
         double cx, cy, cz;
-        cx = gsl_matrix_get(ev_ens, 0, i) + ev_cart[0];
-        cy = gsl_matrix_get(ev_ens, 1, i) + ev_cart[1];
-        cz = gsl_matrix_get(ev_ens, 2, i) + ev_cart[2];
+        cx = gsl_matrix_get(correlated_ens, 0, i) + ev_cart[0];
+        cy = gsl_matrix_get(correlated_ens, 1, i) + ev_cart[1];
+        cz = gsl_matrix_get(correlated_ens, 2, i) + ev_cart[2];
         if (out_spherical) {
             _ev_sph = cart2sph(cx, cy, cz);
-            gsl_matrix_set(ev_ens, 0, i, _ev_sph[0]);
-            gsl_matrix_set(ev_ens, 1, i, _ev_sph[1]);
-            gsl_matrix_set(ev_ens, 2, i, _ev_sph[2]);
+            gsl_matrix_set(correlated_ens, 0, i, _ev_sph[0]);
+            gsl_matrix_set(correlated_ens, 1, i, _ev_sph[1]);
+            gsl_matrix_set(correlated_ens, 2, i, _ev_sph[2]);
         } else {
-            gsl_matrix_set(ev_ens, 0, i, cx);
-            gsl_matrix_set(ev_ens, 1, i, cy);
-            gsl_matrix_set(ev_ens, 2, i, cz);
+            gsl_matrix_set(correlated_ens, 0, i, cx);
+            gsl_matrix_set(correlated_ens, 1, i, cy);
+            gsl_matrix_set(correlated_ens, 2, i, cz);
         }
     }
-    return ev_ens;
+    return correlated_ens;
 }
 
 
@@ -141,6 +141,8 @@ static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
     PyObject *n_size_obj;
     int n_size, n_args;
     const char* coordinate_system = NULL;
+
+    PyObject *original_type, *original_value, *original_traceback; 
     
     n_args = (int)PyTuple_Size(args);
     if (n_args == 1 || n_args == 2) {
@@ -170,14 +172,13 @@ static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
     }
 
     gsl_matrix* ev_array = build_ev_array(ev_sph, n_size, coordinate_system);
-    PyObject *original_type, *original_value, *original_traceback; 
-    PyErr_Fetch(&original_type, &original_value, &original_traceback);
     if (ev_array == NULL) {
+        PyErr_Fetch(&original_type, &original_value, &original_traceback);
         PyErr_Restore(original_type, original_value, original_traceback);
         return NULL;
     }
 
-    return build_numpy_array(ev_array);
+    return build_numpy_2Darray(ev_array);
 }
 
 
