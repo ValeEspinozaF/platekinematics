@@ -31,9 +31,9 @@ double * sph2cart(double lon, double lat, double mag) {
 
 double * cart2sph(double x, double y, double z) {
     static double r[3];
-    r[0] = to_degrees(atan2(y, x));
-    r[1] = to_degrees(atan2(z, sqrt(x * x + y * y)));
-    r[2] = sqrt(x * x + y * y + z * z);
+    r[0] = to_degrees(atan2(y, x)); //lon
+    r[1] = to_degrees(atan2(z, sqrt(x * x + y * y))); //lat
+    r[2] = sqrt(x * x + y * y + z * z); //angle
     return r;
 }
 

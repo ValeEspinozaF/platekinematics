@@ -37,7 +37,6 @@ gsl_matrix * ev_cov_to_matrix(EulerVector *ev_sph) {
     return matrix;
 }
 
-
 // Convert a finite rotation covariance [radians²] to a 3x3 symmetric matrix [radians²].
 gsl_matrix* fr_cov_to_matrix(FiniteRot *fr_sph) {
     Covariance *cov = &fr_sph->Covariance;

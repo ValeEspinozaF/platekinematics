@@ -9,26 +9,6 @@
 #include "../build_ensemble.h"
 
 
-PyObject * build_numpy_2Darray(gsl_matrix *cA) {
-    npy_intp dims[2]; 
-    dims[0] = (int)cA->size1;
-    dims[1] = (int)cA->size2;
-
-    // Create a new NumPy array and copy data
-    PyObject *np_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
-    double *np_data = (double *)PyArray_DATA((PyArrayObject *)np_array);
-
-    for (int i = 0; i < cA->size1; ++i) {
-        for (int j = 0; j < cA->size2; ++j) {
-            np_data[i * cA->size2 + j] = gsl_matrix_get(cA, i, j);
-        }
-    }
-
-    gsl_matrix_free(cA);
-    return np_array;
-}
-
-
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
     gsl_matrix *cov_matrix, *correlated_ens;
     double * ev_cart, *_ev_sph;

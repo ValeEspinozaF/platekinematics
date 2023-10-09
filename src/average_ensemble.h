@@ -13,6 +13,7 @@
 #include "spherical_functions.c"
 #include "build_ensemble.c"
 #include "type_methods/covariance_methods.c"
+#include "average_ensemble.c"
 
 
 #endif // METHODS_H

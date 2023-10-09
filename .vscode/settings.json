@@ -21,6 +21,7 @@
         "complex": "c",
         "memory": "c",
         "tuple": "c",
-        "xmemory0": "c"
+        "xmemory0": "c",
+        "iosfwd": "c"
     }
 }
