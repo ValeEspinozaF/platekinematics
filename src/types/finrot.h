@@ -1,4 +1,4 @@
-#include <Python.h> 
+#include "../platekinematics.h"
 #include "covariance.h"
 
 #ifndef FINITE_ROT_H

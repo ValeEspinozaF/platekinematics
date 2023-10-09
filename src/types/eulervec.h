@@ -1,7 +1,7 @@
 #ifndef EULER_VECTOR_H
 #define EULER_VECTOR_H
 
-#include <Python.h> 
+#include "../platekinematics.h"
 #include "covariance.h"
 
 

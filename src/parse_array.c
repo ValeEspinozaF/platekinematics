@@ -1,8 +1,7 @@
-#include <Python.h>
-#include <numpy/arrayobject.h>
+#include "parse_array.h"
 
 
-static gsl_matrix * pyarray2D_to_gslmatrix(PyObject *pyarray) {
+static gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray) {
     if (!PyArray_Check(pyarray)) {
         PyErr_SetString(PyExc_TypeError, "pyarray_to_gslmatrix() expects an array as input");
         return NULL;
@@ -33,7 +32,7 @@ static gsl_matrix * pyarray2D_to_gslmatrix(PyObject *pyarray) {
     return gsl_m;
 }
 
-static gsl_matrix * pyarray3D_to_gslmatrix(PyObject *pyarray) {
+static gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray) {
     if (!PyArray_Check(pyarray)) {
         PyErr_SetString(PyExc_TypeError, "pyarray_to_gslmatrix() expects an array as input");
         return NULL;
@@ -188,7 +187,7 @@ static double* parse_double_array(PyObject *py_obj) {
     }
 }
 
-PyObject * build_numpy_3Darray(gsl_matrix **cA, int dim0_n_size) {
+PyObject* build_numpy_3Darray(gsl_matrix **cA, int dim0_n_size) {
     npy_intp dims[3] = {dim0_n_size, (int)cA[0]->size1, (int)cA[0]->size2};
 
     // Create a new NumPy array and copy data
@@ -208,7 +207,7 @@ PyObject * build_numpy_3Darray(gsl_matrix **cA, int dim0_n_size) {
     return np_array;
 }
 
-PyObject * build_numpy_2Darray(gsl_matrix *cA) {
+PyObject* build_numpy_2Darray(gsl_matrix *cA) {
     npy_intp dims[2]; 
     dims[0] = (int)cA->size1;
     dims[1] = (int)cA->size2;

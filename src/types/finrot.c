@@ -1,7 +1,6 @@
-#include <Python.h>
-#include "structmember.h"
-#include "../type_methods/finrot_methods.c"
-//#include "../types/covariance.c"
+#include "../pk_structs.h"
+
+PyObject *py_build_frm_array(PyObject *self, PyObject *args);
 
 static PyMemberDef FiniteRotation_members[] = {
     {"Lon", T_DOUBLE, offsetof(FiniteRot, Lon), 0, "Longitude of the rotation axis in degrees-East."},
@@ -221,7 +220,7 @@ static PyGetSetDef FiniteRotation_getsetters[] = {
 
 
 static PyMethodDef FiniteRotation_methods[] = {
-    {"build_array", py_build_fr_array, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
+    {"build_array", py_build_frm_array, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
     {NULL, NULL, 0, NULL}
 };
 

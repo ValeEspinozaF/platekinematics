@@ -8,6 +8,10 @@ build_ = Extension("build_ensemble", sources = [r"src\build_ensemble.c"],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
                            libraries=['gsl', 'gslcblas'])
 
+build_2 = Extension("methods", [r"src/average_ensemble.c", r"src/spherical_functions.c", r"src/type_conversions/finrot_conversions.c"],
+                           library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
+                           libraries=['gsl', 'gslcblas']),
+
 setup(
     name=PACKAGE_NAME,
     version="0.1",
@@ -22,9 +26,6 @@ setup(
                            libraries=['gsl', 'gslcblas']),
                  Extension("spherical_functions", [r"src/spherical_functions.c"]),
                  Extension("pk_structs", [r"src/pk_structs.c"],
-                           library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-                           libraries=['gsl', 'gslcblas']),
-                 Extension("methods", [r"src/average_ensemble.c"],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
                            libraries=['gsl', 'gslcblas']),
                  ]

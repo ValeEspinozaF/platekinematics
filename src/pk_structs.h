@@ -1,16 +1,11 @@
 #ifndef PK_STRUCT_H
 #define PK_STRUCT_H
 
-#include <Python.h>
-#include <stdio.h>
-#include "gsl.h"
+#include "platekinematics.h"
+#include "structmember.h"
 
-#include <numpy/arrayobject.h>
-
-#include "types/covariance.c"
-#include "types/finrot.c"
-#include "types/eulervec.c"
-#include "type_methods/covariance_methods.h"
-#include "type_methods/eulervec_methods.h"
+#include "types/covariance.h"
+#include "types/finrot.h"
+#include "types/eulervec.h"
 
 #endif // PK_STRUCT_H

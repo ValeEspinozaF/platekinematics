@@ -1,12 +1,4 @@
-#include <Python.h>
-#include <stdbool.h>
-#include <numpy/arrayobject.h>
-
-#include "../gsl.h"
-#include "../types/eulervec.h"
-#include "type_methods/covariance_methods.h"
-#include "../spherical_functions.h"
-#include "../build_ensemble.h"
+#include "type_methods.h"
 
 
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {

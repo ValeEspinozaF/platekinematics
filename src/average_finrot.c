@@ -1,7 +1,9 @@
-#include "average_ensemble.h"
+#include "ensemble_methods.h"
+
+void average_vector(gsl_matrix* m_cart, double *v_cart, double *v_cov);
 
 
-static gsl_matrix* pylist_fr_to_gslmatrix(PyObject *py_array) {
+static gsl_matrix** pylist_fr_to_gslmatrix(PyObject *py_array) {
     int n_size = (int)PyList_Size(py_array);
     gsl_matrix** m_array = (gsl_matrix**)malloc(n_size * sizeof(gsl_matrix*));
 
@@ -42,7 +44,7 @@ static PyObject *py_fr_average(PyObject *self, PyObject *args) {
 
 
     // Ensemble arg parsing
-    gsl_matrix* fr_gsl;
+    gsl_matrix** fr_gsl;
     if (PyArray_Check(fr_pyob)) {
         fr_gsl = pyarray3D_to_gslmatrix(fr_pyob);
         if (fr_gsl == NULL) {
@@ -65,13 +67,17 @@ static PyObject *py_fr_average(PyObject *self, PyObject *args) {
     
 
     // Calculate average finite rotation from GSL matrix
-    gsl_matrix* ea_array = rotation_matrix_to_ea(fr_gsl);
+    gsl_matrix* ea_array = rotation_matrices_to_eas(fr_gsl);
     if (ea_array == NULL) { //!!! Function does not throw any errors
         PyErr_Fetch(&original_type, &original_value, &original_traceback);
         PyErr_Restore(original_type, original_value, original_traceback);
         return NULL;
     }
-    gsl_matrix_free(fr_gsl);
+
+    int n_size = (int)(sizeof(fr_gsl) / sizeof(fr_gsl[0]));
+    for (int i = 0; i < n_size; i++) {
+        gsl_matrix_free(fr_gsl[i]);
+    }   
 
     double* ea_cart = (double*)malloc(3 * sizeof(double));
     double* fr_cov = (double*)malloc(6 * sizeof(double));

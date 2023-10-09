@@ -22,6 +22,11 @@
         "memory": "c",
         "tuple": "c",
         "xmemory0": "c",
-        "iosfwd": "c"
+        "iosfwd": "c",
+        "type_methods.h": "c",
+        "gsl_randist.h": "c",
+        "ensemble_methods.h": "c",
+        "average_finrot.h": "c",
+        "average_eulervec.h": "c"
     }
 }

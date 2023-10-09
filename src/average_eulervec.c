@@ -1,4 +1,5 @@
-#include "average_ensemble.h"
+#include "ensemble_methods.h"
+
 
 static gsl_matrix* pylist_ev_to_gslmatrix(PyObject *py_array) {
     int n_size = (int)PyList_Size(py_array);

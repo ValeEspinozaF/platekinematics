@@ -1,8 +1,9 @@
-#include <Python.h>
-#include "structmember.h"
-#include "../type_methods/eulervec_methods.c"
-#include "../type_methods/eulervec_methods.h"
-#include "../types/covariance.h"
+
+#include "pk_structs.h"
+
+PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args);
+PyObject *py_build_ev_array(PyObject *self, PyObject *args);
+
 
 static PyMemberDef EulerVector_members[] = {
     {"Lon", T_DOUBLE, offsetof(EulerVector, Lon), 0, "Longitude of the Euler pole in degrees-East."},

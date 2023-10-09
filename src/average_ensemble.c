@@ -1,7 +1,10 @@
-#include <Python.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "gsl.h"
+#include "ensemble_methods.h"
+#include "average_finrot.h"
+#include "average_eulervec.h"
+
+PyTypeObject CovarianceType;
+PyTypeObject FiniteRotationType;
+PyTypeObject EulerVectorType;
 
 
 void average_vector(gsl_matrix* m_cart, double *v_cart, double *v_cov) {

@@ -1,7 +1,7 @@
 #ifndef COVARIANCE_H
 #define COVARIANCE_H
 
-#include <Python.h>
+#include "../platekinematics.h"
 
 typedef struct {
     PyObject_HEAD

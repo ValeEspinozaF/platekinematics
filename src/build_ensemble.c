@@ -1,8 +1,4 @@
-#define WIN32
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-
-#include <Python.h>
-#include "gsl.h"
+#include "platekinematics.h"
 
 
 gsl_matrix* correlated_ensemble_3d(gsl_matrix *cov_matrix, int n_size) {
