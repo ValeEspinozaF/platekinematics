@@ -1,3 +1,4 @@
+#define PY_ARRAY_UNIQUE_SYMBOL PLATEKIN_ARRAY_API
 #include "pk_structs.h"
 
 static PyModuleDef pk_structs = {
