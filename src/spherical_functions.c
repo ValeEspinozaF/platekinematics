@@ -39,7 +39,7 @@ static PyObject *py_to_degrees(PyObject *self, PyObject *args) {
   double n_num, result;
 
   /* Parse argument from python to local variable (n_num) */
-  if (!PyArg_ParseTuple(args, "f", &n_num)) {
+  if (!PyArg_ParseTuple(args, "d", &n_num)) {
     return NULL;
   }
 
@@ -47,19 +47,19 @@ static PyObject *py_to_degrees(PyObject *self, PyObject *args) {
   result = to_degrees(n_num);
 
   /* Return */
-  return Py_BuildValue("f", result);
+  return Py_BuildValue("d", result);
 }
 
 
 static PyObject *py_to_radians(PyObject *self, PyObject *args) {
   double n_num, result;
 
-  if (!PyArg_ParseTuple(args, "f", &n_num)) {
+  if (!PyArg_ParseTuple(args, "d", &n_num)) {
     return NULL;
   }
 
   result = to_radians(n_num);
-  return Py_BuildValue("f", result);
+  return Py_BuildValue("d", result);
 }
 
 
@@ -67,24 +67,24 @@ static PyObject *py_sph2cart(PyObject *self, PyObject *args) {
   double lon, lat, mag;
   double *result;
 
-  if (!PyArg_ParseTuple(args, "fff", &lon, &lat, &mag)) {
+  if (!PyArg_ParseTuple(args, "ddd", &lon, &lat, &mag)) {
     return NULL;
   }
 
   result = sph2cart(lon, lat, mag);
-  return Py_BuildValue("fff", result[0], result[1], result[2]);
+  return Py_BuildValue("ddd", result[0], result[1], result[2]);
 }
 
 static PyObject *py_cart2sph(PyObject *self, PyObject *args) {
   double x, y, z;
   double *result;
 
-  if (!PyArg_ParseTuple(args, "fff", &x, &y, &z)) {
+  if (!PyArg_ParseTuple(args, "ddd", &x, &y, &z)) {
     return NULL;
   }
 
   result = cart2sph(x, y, z);
-  return Py_BuildValue("fff", result[0], result[1], result[2]);
+  return Py_BuildValue("ddd", result[0], result[1], result[2]);
 }
 
 

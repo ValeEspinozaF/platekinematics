@@ -1,4 +1,8 @@
 {
+    "python.pythonPath": "C:\\Users\\nbt571\\Anaconda3\\envs\\c_mod\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+    "python.condaPath": "C:\\Users\\nbt571\\Anaconda3\\Scripts\\conda.exe",
     "files.associations": {
         "system_error": "c",
         "xtr1common": "c",

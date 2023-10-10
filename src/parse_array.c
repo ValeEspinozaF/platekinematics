@@ -1,4 +1,5 @@
 #include "parse_array.h"
+#include <numpy/arrayobject.h>
 
 
 static gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray) {
@@ -212,16 +213,20 @@ PyObject* build_numpy_2Darray(gsl_matrix *cA) {
     dims[0] = (int)cA->size1;
     dims[1] = (int)cA->size2;
 
+    PySys_WriteStdout("dims[0] = %i\n", dims[0]);
+    PySys_WriteStdout("dims[1] = %i\n", dims[1]);
+
     // Create a new NumPy array and copy data
     PyObject *np_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
-    double *np_data = (double *)PyArray_DATA((PyArrayObject *)np_array);
+    //double *np_data = (double *)PyArray_DATA((PyArrayObject *)np_array);
 
-    for (int i = 0; i < cA->size1; ++i) {
+    /* for (int i = 0; i < cA->size1; ++i) {
         for (int j = 0; j < cA->size2; ++j) {
             np_data[i * cA->size2 + j] = gsl_matrix_get(cA, i, j);
         }
     }
-
-    gsl_matrix_free(cA);
-    return np_array;
+ */
+    //gsl_matrix_free(cA);
+    //return np_array;
+    return Py_BuildValue("i", 1);
 }
