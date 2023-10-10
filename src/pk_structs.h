@@ -7,5 +7,6 @@
 #include "types/covariance.h"
 #include "types/finrot.h"
 #include "types/eulervec.h"
+#include "parse_array.h"
 
 #endif // PK_STRUCT_H

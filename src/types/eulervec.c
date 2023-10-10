@@ -1,5 +1,5 @@
 
-#include "pk_structs.h"
+#include "../pk_structs.h"
 
 PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args);
 PyObject *py_build_ev_array(PyObject *self, PyObject *args);
@@ -262,7 +262,7 @@ static PyMethodDef EulerVector_methods[] = {
 }; 
 
 
-static PyTypeObject EulerVectorType = {
+PyTypeObject EulerVectorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.EulerVector",
     .tp_doc = "EulerVector object",

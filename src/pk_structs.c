@@ -1,9 +1,5 @@
 #include "pk_structs.h"
 
-PyTypeObject CovarianceType;
-PyTypeObject FiniteRotationType;
-PyTypeObject EulerVectorType;
-
 static PyModuleDef pk_structs = {
     PyModuleDef_HEAD_INIT,
     .m_name = "pk_structs",

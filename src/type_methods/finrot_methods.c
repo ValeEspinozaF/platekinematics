@@ -44,20 +44,20 @@ gsl_matrix** build_frm_array(FiniteRot *fr_sph, int n_size) {
 
     gsl_matrix_free(cov_matrix);  
 
-    gsl_vector *ex, *ey, *ez;
-    gsl_matrix_get_row(correlated_ens, ex, 0);
-    gsl_matrix_get_row(correlated_ens, ey, 1);
-    gsl_matrix_get_row(correlated_ens, ez, 2);
+    gsl_vector *ex = gsl_vector_alloc(correlated_ens->size2);
+    gsl_vector *ey = gsl_vector_alloc(correlated_ens->size2);
+    gsl_vector *ez = gsl_vector_alloc(correlated_ens->size2);
+    gsl_matrix_get_row(ex, correlated_ens, 0);
+    gsl_matrix_get_row(ey, correlated_ens, 1);
+    gsl_matrix_get_row(ez, correlated_ens, 2);
 
     return eas_to_rotation_matrices(ex, ey, ez);
 }
 
 
-static PyObject *py_build_frm_array(PyObject *self, PyObject *args) {
+PyObject *py_build_frm_array(PyObject *self, PyObject *args) {
     FiniteRot *fr_sph = (FiniteRot*)self;
     PyObject *n_size_obj;
-    gsl_matrix *correlated_ens;
-    PyObject *np_array;
     double float_value;
     int n_size;
     

@@ -108,7 +108,7 @@ PyObject * build_ev_ensemble(EulerVector *ev_sph, int n_size) {
 }
 
 
-static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
+PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
     EulerVector *ev_sph = (EulerVector *)self;
     PyObject *n_size_obj;
     int n_size, n_args;
@@ -154,7 +154,7 @@ static PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
 }
 
 
-static PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args) {
+PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args) {
     EulerVector *ev_sph = (EulerVector *)self;
     PyObject *n_size_obj = NULL;
     int n_size;

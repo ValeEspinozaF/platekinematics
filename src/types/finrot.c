@@ -14,7 +14,6 @@ static PyMemberDef FiniteRotation_members[] = {
 
 
 static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    Covariance *tmp;
     PyObject *lon_obj, *lat_obj, *angle_obj, *time_obj;
     PyObject *cov = NULL;
     
@@ -225,7 +224,7 @@ static PyMethodDef FiniteRotation_methods[] = {
 };
 
 
-static PyTypeObject FiniteRotationType = {
+PyTypeObject FiniteRotationType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.FiniteRotation",
     .tp_doc = "FiniteRotation object",

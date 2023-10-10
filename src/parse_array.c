@@ -164,7 +164,7 @@ static double* parse_numpy_1Darray(PyObject *py_obj) {
     return output_list;
 }
 
-static double* parse_double_array(PyObject *py_obj) {
+double* parse_double_array(PyObject *py_obj) {
 
     // Check if tuple
     if (PyTuple_Check(py_obj)) {

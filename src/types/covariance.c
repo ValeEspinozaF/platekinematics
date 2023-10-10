@@ -80,7 +80,7 @@ static PyObject* Covariance_repr(Covariance *self) {
 }
 
 
-static void Covariance_dealloc(Covariance *self) {
+void Covariance_dealloc(Covariance *self) {
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -191,7 +191,7 @@ static PyGetSetDef Covariance_getsetters[] = {
     {NULL}
 };
 
-static PyTypeObject CovarianceType = {
+PyTypeObject CovarianceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.Covariance",
     .tp_doc = "Covariance object with attributes C11-C33",
