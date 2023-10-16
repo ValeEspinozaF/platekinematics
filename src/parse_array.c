@@ -213,9 +213,6 @@ PyObject* build_numpy_2Darray(gsl_matrix *cA) {
     dims[0] = (int)cA->size1;
     dims[1] = (int)cA->size2;
 
-    PySys_WriteStdout("dims[0] = %i\n", dims[0]);
-    PySys_WriteStdout("dims[1] = %i\n", dims[1]);
-
     // Create a new NumPy array and copy data
     PyObject *np_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
     double *np_data = (double *)PyArray_DATA((PyArrayObject *)np_array);
@@ -227,5 +224,21 @@ PyObject* build_numpy_2Darray(gsl_matrix *cA) {
     }
 
     gsl_matrix_free(cA);
+    return np_array;
+}
+
+PyObject* build_numpy_1Darray(gsl_vector *cA) {
+    npy_intp dims[1]; 
+    dims[0] = (int)cA->size;
+
+    // Create a new NumPy array and copy data
+    PyObject *np_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    double *np_data = (double *)PyArray_DATA((PyArrayObject *)np_array);
+
+    for (int i = 0; i < cA->size; ++i) {
+        np_data[i] = gsl_vector_get(cA, i);
+    }
+
+    gsl_vector_free(cA);
     return np_array;
 }

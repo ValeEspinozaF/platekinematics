@@ -1,5 +1,47 @@
 #include "type_methods.h"
 
+gsl_vector* cov_to_gsl_vector(Covariance *cov);
+PyObject* build_numpy_1Darray(gsl_vector *cA);
+
+gsl_vector* ev_to_gsl_vector(EulerVector *ev_sph) {
+    gsl_vector *ev_vector, *cov_vector, *ev_cov_vector;
+    Covariance *cov;
+
+    ev_vector = gsl_vector_alloc(5);
+    gsl_vector_set(ev_vector, 0, ev_sph->Lon);
+    gsl_vector_set(ev_vector, 1, ev_sph->Lat);
+    gsl_vector_set(ev_vector, 2, ev_sph->AngVelocity);
+    gsl_vector_set(ev_vector, 3, ev_sph->TimeRange[0]);
+    gsl_vector_set(ev_vector, 4, ev_sph->TimeRange[1]);
+
+    if (ev_sph->has_covariance == 1){
+        cov = &(ev_sph->Covariance);
+        cov_vector = cov_to_gsl_vector(cov);
+        ev_cov_vector = gsl_vector_alloc(11);
+        
+        gsl_vector_view viewOut1 = gsl_vector_subvector(ev_cov_vector, 0, 5);
+        gsl_vector_view viewOut2 = gsl_vector_subvector(ev_cov_vector, 5, 6);
+        gsl_vector_memcpy(&viewOut1.vector, ev_vector);
+        gsl_vector_memcpy(&viewOut2.vector, cov_vector);
+        gsl_vector_free(ev_vector);
+        gsl_vector_free(cov_vector);
+
+    } else {
+        ev_cov_vector = gsl_vector_alloc(5);
+        
+        gsl_vector_view viewOut1 = gsl_vector_subvector(ev_cov_vector, 0, 5);
+        gsl_vector_memcpy(&viewOut1.vector, ev_vector);
+        gsl_vector_free(ev_vector);
+    }
+
+    return ev_cov_vector;
+}
+
+PyObject *py_ev_to_numpy(PyObject *self, int Py_UNUSED(_)) {
+    EulerVector *ev_sph = (EulerVector*)self;
+    gsl_vector* ev_vector = ev_to_gsl_vector(ev_sph);
+    return build_numpy_1Darray(ev_vector);
+}
 
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
     gsl_matrix *cov_matrix, *correlated_ens;
@@ -151,7 +193,6 @@ PyObject *py_build_ev_array(PyObject *self, PyObject *args) {
     }
 
     return build_numpy_2Darray(ev_array);
-    //return Py_BuildValue("i", n_size);
 }
 
 

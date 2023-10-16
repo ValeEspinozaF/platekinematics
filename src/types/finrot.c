@@ -1,5 +1,6 @@
 #include "../pk_structs.h"
 
+PyObject *py_fr_to_numpy(PyObject *self, int Py_UNUSED(_));
 PyObject *py_build_frm_array(PyObject *self, PyObject *args);
 
 static PyMemberDef FiniteRotation_members[] = {
@@ -219,6 +220,7 @@ static PyGetSetDef FiniteRotation_getsetters[] = {
 
 
 static PyMethodDef FiniteRotation_methods[] = {
+    {"to_numpy", py_fr_to_numpy, METH_NOARGS, "Converts a FiniteRotation() instance to a numpy array."},
     {"build_array", py_build_frm_array, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
     {NULL, NULL, 0, NULL}
 };

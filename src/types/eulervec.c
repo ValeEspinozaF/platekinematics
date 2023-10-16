@@ -1,6 +1,7 @@
 
 #include "../pk_structs.h"
 
+PyObject *py_ev_to_numpy(PyObject *self, int Py_UNUSED(_));
 PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args);
 PyObject *py_build_ev_array(PyObject *self, PyObject *args);
 
@@ -256,6 +257,7 @@ static PyGetSetDef EulerVector_getsetters[] = {
 
 
 static PyMethodDef EulerVector_methods[] = {
+    {"to_numpy", py_ev_to_numpy, METH_NOARGS, "Converts a EulerVector() instance to a numpy array."},
     {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "Draws n EulerVector() samples from the covariance of a given Euler vector."},
     {"build_array", py_build_ev_array, METH_VARARGS, "Draws n Euler vector coordinate samples and stores them in a 3byn array."},
     {NULL, NULL, 0, NULL}

@@ -49,11 +49,13 @@ setup(
                                           r"src/type_conversions/covariance_conversions.c",
                                           r"src/type_conversions/finrot_conversions.c",
                                           r"src/parse_array.c",
+                                          r"src/type_methods/covariance_methods.c",
                                           r"src/type_methods/eulervec_methods.c",
                                           r"src/type_methods/finrot_methods.c",
                                           r"src/spherical_functions.c",
                                           r"src/build_ensemble.c",
                                           r"src/pk_structs.c",
+                                          
                                           ],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
                            libraries=['gsl', 'gslcblas']),

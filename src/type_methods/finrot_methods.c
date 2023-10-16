@@ -1,5 +1,48 @@
 #include "type_methods.h"
 
+gsl_vector* cov_to_gsl_vector(Covariance *cov);
+PyObject* build_numpy_1Darray(gsl_vector *cA);
+
+gsl_vector* fr_to_gsl_vector(FiniteRot *fr_sph) {
+    gsl_vector *fr_vector, *cov_vector, *fr_cov_vector;
+    Covariance *cov;
+
+    fr_vector = gsl_vector_alloc(4);
+    gsl_vector_set(fr_vector, 0, fr_sph->Lon);
+    gsl_vector_set(fr_vector, 1, fr_sph->Lat);
+    gsl_vector_set(fr_vector, 2, fr_sph->Angle);
+    gsl_vector_set(fr_vector, 3, fr_sph->Time);
+
+    if (fr_sph->has_covariance == 1){
+        cov = &(fr_sph->Covariance);
+        cov_vector = cov_to_gsl_vector(cov);
+        fr_cov_vector = gsl_vector_alloc(10);
+        
+        gsl_vector_view viewOut1 = gsl_vector_subvector(fr_cov_vector, 0, 4);
+        gsl_vector_view viewOut2 = gsl_vector_subvector(fr_cov_vector, 4, 6);
+        gsl_vector_memcpy(&viewOut1.vector, fr_vector);
+        gsl_vector_memcpy(&viewOut2.vector, cov_vector);
+        gsl_vector_free(fr_vector);
+        gsl_vector_free(cov_vector);
+
+    } else {
+        fr_cov_vector = gsl_vector_alloc(4);
+        
+        gsl_vector_view viewOut1 = gsl_vector_subvector(fr_cov_vector, 0, 4);
+        gsl_vector_memcpy(&viewOut1.vector, fr_vector);
+        gsl_vector_free(fr_vector);
+    }
+
+    return fr_cov_vector;
+}
+
+PyObject *py_fr_to_numpy(PyObject *self, int Py_UNUSED(_)) {
+    FiniteRot *fr_sph = (FiniteRot*)self;
+    gsl_vector* fr_vector = fr_to_gsl_vector(fr_sph);
+    return build_numpy_1Darray(fr_vector);
+}
+
+
 // Draw n_size rotation matrix samples from the covariance of a given finite rotation.
 gsl_matrix** build_frm_array(FiniteRot *fr_sph, int n_size) {
     gsl_matrix *cov_matrix, *correlated_ens;

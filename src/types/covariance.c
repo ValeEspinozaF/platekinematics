@@ -1,5 +1,6 @@
 #include "../pk_structs.h"
 
+PyObject *py_cov_to_numpy(PyObject *self, int Py_UNUSED(_));
 
 static PyMemberDef Covariance_members[] = {
     {"C11", T_DOUBLE, offsetof(Covariance, C11), 0, "First element of the covariance matrix"},
@@ -191,6 +192,12 @@ static PyGetSetDef Covariance_getsetters[] = {
     {NULL}
 };
 
+
+static PyMethodDef Covariance_methods[] = {
+    {"to_numpy", py_cov_to_numpy, METH_NOARGS, "Converts a Covariance() instance to a numpy array."},
+    {NULL, NULL, 0, NULL}
+};
+
 PyTypeObject CovarianceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.Covariance",
@@ -203,4 +210,5 @@ PyTypeObject CovarianceType = {
     .tp_new = Covariance_new,
     .tp_dealloc = (destructor)Covariance_dealloc,
     .tp_getset = Covariance_getsetters,
+    .tp_methods = Covariance_methods,
 };
