@@ -3,33 +3,37 @@ import numpy as np
 
 PACKAGE_NAME = "platekinematics"
 
-build_ = Extension("build_ensemble", sources = [r"src\build_ensemble.c"], 
+build_ = Extension("build_ensemble", [r"src\build_ensemble.c"], 
                            #define_macros=[('GSL_DLL', None)],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-                           libraries=['gsl', 'gslcblas'])
+                           libraries=['gsl', 'gslcblas']
+                           )
 
-build_2 = Extension("methods", [r"src/average_ensemble.c", r"src/spherical_functions.c", r"src/type_conversions/finrot_conversions.c"],
+build_2 = Extension("methods", [r"src/types/covariance.c",
+                                r"src/types/finrot.c",
+                                r"src/types/eulervec.c",
+                                r"src/type_methods/covariance_methods.c",
+                                r"src/type_methods/eulervec_methods.c",
+                                r"src/type_methods/finrot_methods.c",
+                                r"src/spherical_functions.c", 
+                                r"src/parse_array.c",
+                                r"src/build_ensemble.c",
+                                r"src/type_conversions/covariance_conversions.c",
+                                r"src/type_conversions/finrot_conversions.c",
+                                r"src/average_vector.c", 
+                                r"src/average_eulervec.c", 
+                                r"src/average_finrot.c", 
+                                r"src/average_ensemble.c", 
+                                r"src/pk_structs.c",
+                                ],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-                           libraries=['gsl', 'gslcblas']),
-
-build_3 = Extension("pk_structs", [r"src/types/covariance.c",
-                                          r"src/types/finrot.c",
-                                          r"src/types/eulervec.c",
-                                          r"src/type_conversions/covariance_conversions.c",
-                                          r"src/type_conversions/finrot_conversions.c",
-                                          r"src/parse_array.c",
-                                          r"src/type_methods/eulervec_methods.c",
-                                          r"src/type_methods/finrot_methods.c",
-                                          r"src/spherical_functions.c",
-                                          r"src/build_ensemble.c",
-                                          r"src/pk_structs.c",
-                                          ],
-                           library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-                           libraries=['gsl', 'gslcblas'])
+                           libraries=['gsl', 'gslcblas']
+                           )
 
 build_4 = Extension("maths", [r"src/maths.c"],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-                           libraries=['gsl', 'gslcblas'])
+                           libraries=['gsl', 'gslcblas']
+                           )
                  
                  
 
@@ -49,15 +53,18 @@ setup(
                                           r"src/type_conversions/covariance_conversions.c",
                                           r"src/type_conversions/finrot_conversions.c",
                                           r"src/parse_array.c",
+                                          r"src/build_ensemble.c",
                                           r"src/type_methods/covariance_methods.c",
                                           r"src/type_methods/eulervec_methods.c",
                                           r"src/type_methods/finrot_methods.c",
                                           r"src/spherical_functions.c",
-                                          r"src/build_ensemble.c",
                                           r"src/pk_structs.c",
-                                          
+                                          r"src/average_vector.c", 
+                                          r"src/average_eulervec.c", 
+                                          r"src/average_finrot.c", 
                                           ],
                            library_dirs=[r'src/vcpkg/installed/x64-windows/lib'],
-                           libraries=['gsl', 'gslcblas']),
+                           libraries=['gsl', 'gslcblas'],
+                           ),
                  ]
 )

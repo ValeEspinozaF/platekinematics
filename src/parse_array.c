@@ -2,7 +2,7 @@
 #define NO_IMPORT_ARRAY
 #include "parse_array.h"
 
-static gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray) {
+gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray) {
     if (!PyArray_Check(pyarray)) {
         PyErr_SetString(PyExc_TypeError, "pyarray_to_gslmatrix() expects an array as input");
         return NULL;
@@ -33,7 +33,7 @@ static gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray) {
     return gsl_m;
 }
 
-static gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray) {
+gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray, npy_intp **dim0_n_size) {
     if (!PyArray_Check(pyarray)) {
         PyErr_SetString(PyExc_TypeError, "pyarray_to_gslmatrix() expects an array as input");
         return NULL;
@@ -52,13 +52,15 @@ static gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray) {
     }
 
     npy_intp *dims = PyArray_DIMS(np_array);
+    ** dim0_n_size = dims[0];
+    
     gsl_matrix** m_array = (gsl_matrix**)malloc(dims[0] * sizeof(gsl_matrix*));
     
     for (int i = 0; i < dims[0]; i++) {
         m_array[i] = gsl_matrix_alloc(3, 3);
 
         for (int j = 0; j < dims[1]; j++) {
-            for (int k = 0; k < dims[2]; j++) {
+            for (int k = 0; k < dims[2]; k++) {
                 double* ptr = (double*)PyArray_GETPTR3(np_array, i, j, k);
                 double value = *ptr;
                 gsl_matrix_set(m_array[i], j, k, value);

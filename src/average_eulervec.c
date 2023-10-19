@@ -1,5 +1,7 @@
 #include "ensemble_methods.h"
 
+void average_vector(gsl_matrix* m_cart, double *v_cart, double *v_cov);
+
 
 static gsl_matrix* pylist_ev_to_gslmatrix(PyObject *py_array) {
     int n_size = (int)PyList_Size(py_array);
@@ -22,7 +24,7 @@ static gsl_matrix* pylist_ev_to_gslmatrix(PyObject *py_array) {
     return ev_gsl;
 }
 
-static PyObject *py_ev_average(PyObject *self, PyObject *args) {
+PyObject *py_ev_average(PyObject *self, PyObject *args) {
     int n_args;
     PyObject *ev_pyob, *tr_pyobj = NULL;
     double *tr_list;

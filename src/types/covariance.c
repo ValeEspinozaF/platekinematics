@@ -2,6 +2,7 @@
 
 PyObject *py_cov_to_numpy(PyObject *self, int Py_UNUSED(_));
 
+
 static PyMemberDef Covariance_members[] = {
     {"C11", T_DOUBLE, offsetof(Covariance, C11), 0, "First element of the covariance matrix"},
     {"C12", T_DOUBLE, offsetof(Covariance, C12), 0, "Second element of the covariance matrix"},

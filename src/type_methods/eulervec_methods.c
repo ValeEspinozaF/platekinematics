@@ -2,6 +2,8 @@
 
 gsl_vector* cov_to_gsl_vector(Covariance *cov);
 PyObject* build_numpy_1Darray(gsl_vector *cA);
+gsl_matrix* correlated_ensemble_3d(gsl_matrix *cov_matrix, int n_size);
+
 
 gsl_vector* ev_to_gsl_vector(EulerVector *ev_sph) {
     gsl_vector *ev_vector, *cov_vector, *ev_cov_vector;

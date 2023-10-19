@@ -1,3 +1,5 @@
+#define PY_ARRAY_UNIQUE_SYMBOL PLATEKIN_ARRAY_API // Must be defined before importing numpy/arrayobject.h
+#define NO_IMPORT_ARRAY
 #include "ensemble_methods.h"
 
 void average_vector(gsl_matrix* m_cart, double *v_cart, double *v_cov);
@@ -23,7 +25,7 @@ static gsl_matrix** pylist_fr_to_gslmatrix(PyObject *py_array) {
 }
 
 
-static PyObject *py_fr_average(PyObject *self, PyObject *args) {
+PyObject *py_fr_average(PyObject *self, PyObject *args) { // This function appears to be good, the problem might lay in the build ensemble part. 
     int n_args;
     PyObject *fr_pyob;
     double time = 0.0;
@@ -40,13 +42,15 @@ static PyObject *py_fr_average(PyObject *self, PyObject *args) {
     } else {
         PyErr_SetString(PyExc_TypeError, "average() expects two arguments, a numpy array with the rotation matrix ensemble and float with the age of the ensemble");
         return NULL; 
-    } 
+    }
 
 
-    // Ensemble arg parsing
     gsl_matrix** fr_gsl;
+    npy_intp* ptr_dim0_n_size = (npy_intp*)malloc(sizeof(npy_intp));
+
     if (PyArray_Check(fr_pyob)) {
-        fr_gsl = pyarray3D_to_gslmatrix(fr_pyob);
+        fr_gsl = pyarray3D_to_gslmatrix(fr_pyob, &ptr_dim0_n_size);
+
         if (fr_gsl == NULL) {
             PyErr_Fetch(&original_type, &original_value, &original_traceback);
             PyErr_Restore(original_type, original_value, original_traceback);
@@ -54,20 +58,24 @@ static PyObject *py_fr_average(PyObject *self, PyObject *args) {
         }
 
     } else if (PyList_Check(fr_pyob)) {
-        fr_gsl = pylist_fr_to_gslmatrix(fr_pyob);
+        PyErr_SetString(PyExc_TypeError, "not yet implemented for lists");
+        return NULL;
+        /* fr_gsl = pylist_fr_to_gslmatrix(fr_pyob);
         if (fr_gsl == NULL) {
             PyErr_Fetch(&original_type, &original_value, &original_traceback);
             PyErr_Restore(original_type, original_value, original_traceback);
             return NULL;
-        }
+        } */
     } else {
         PyErr_SetString(PyExc_TypeError, "average() expects a numpy array as input");
         return NULL;
     }
-    
+
+    free(ptr_dim0_n_size);
+
 
     // Calculate average finite rotation from GSL matrix
-    gsl_matrix* ea_array = rotation_matrices_to_eas(fr_gsl);
+    gsl_matrix* ea_array = rotation_matrices_to_eas(fr_gsl, (int)*ptr_dim0_n_size);
     if (ea_array == NULL) { //!!! Function does not throw any errors
         PyErr_Fetch(&original_type, &original_value, &original_traceback);
         PyErr_Restore(original_type, original_value, original_traceback);
@@ -78,14 +86,14 @@ static PyObject *py_fr_average(PyObject *self, PyObject *args) {
     for (int i = 0; i < n_size; i++) {
         gsl_matrix_free(fr_gsl[i]);
     }   
-
+   
     double* ea_cart = (double*)malloc(3 * sizeof(double));
     double* fr_cov = (double*)malloc(6 * sizeof(double));
-    
     average_vector(ea_array, ea_cart, fr_cov);
     gsl_matrix_free(ea_array);
 
     FiniteRot* fr_avg = ea_to_finrot(ea_cart);
+    fr_avg->Time = time;
     if (fr_avg != NULL) {
         fr_avg->Time = time;
 
@@ -106,9 +114,11 @@ static PyObject *py_fr_average(PyObject *self, PyObject *args) {
         }
 
     } else {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to create EulerVector instance");
+        PyErr_SetString(PyExc_RuntimeError, "Failed to create FiniteRotation instance");
         return NULL;
-    }
+    } 
 
+    free(ea_cart);
+    free(fr_cov);
     return (PyObject *)fr_avg;
 }

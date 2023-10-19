@@ -2,6 +2,8 @@
 
 gsl_vector* cov_to_gsl_vector(Covariance *cov);
 PyObject* build_numpy_1Darray(gsl_vector *cA);
+gsl_matrix* correlated_ensemble_3d(gsl_matrix *cov_matrix, int n_size);
+
 
 gsl_vector* fr_to_gsl_vector(FiniteRot *fr_sph) {
     gsl_vector *fr_vector, *cov_vector, *fr_cov_vector;
@@ -56,6 +58,8 @@ gsl_matrix** build_frm_array(FiniteRot *fr_sph, int n_size) {
     }
 
     eu_angles = fr_to_euler_angles(fr_sph); // FIXME No NULL returns in to_euler_angles
+    PySys_WriteStdout("eu_angles: %f, %f, %f\n", eu_angles[0], eu_angles[1], eu_angles[2]);
+
     if (eu_angles == NULL) {
         PyErr_Fetch(&original_type, &original_value, &original_traceback);
         PyErr_Restore(original_type, original_value, original_traceback);
@@ -63,6 +67,11 @@ gsl_matrix** build_frm_array(FiniteRot *fr_sph, int n_size) {
     }
 
     cov_matrix = fr_cov_to_matrix(fr_sph);
+    PySys_WriteStdout("cov_matrix_row1: %f, %f, %f\n", gsl_matrix_get(cov_matrix, 0, 0), gsl_matrix_get(cov_matrix, 0, 1), gsl_matrix_get(cov_matrix, 0, 2));
+    PySys_WriteStdout("cov_matrix_row2: %f, %f, %f\n", gsl_matrix_get(cov_matrix, 1, 0), gsl_matrix_get(cov_matrix, 1, 1), gsl_matrix_get(cov_matrix, 1, 2));
+    PySys_WriteStdout("cov_matrix_row3: %f, %f, %f\n", gsl_matrix_get(cov_matrix, 2, 0), gsl_matrix_get(cov_matrix, 2, 1), gsl_matrix_get(cov_matrix, 2, 2));
+
+
     if (cov_matrix == NULL) {
         PyErr_Fetch(&original_type, &original_value, &original_traceback); // FIXME No NULL returns in fr_cov_to_matrix
         PyErr_Restore(original_type, original_value, original_traceback);
@@ -114,14 +123,17 @@ PyObject *py_build_frm_array(PyObject *self, PyObject *args) {
         return NULL;
     }
 
+
     if (PyLong_Check(n_size_obj)) {
         PyArg_ParseTuple(args, "i", &n_size);
+        
     } else if (PyFloat_Check(n_size_obj)) {
         PyArg_ParseTuple(args, "d", &float_value);
         n_size = (int)float_value;
+
     } else {
-        Py_DECREF(n_size_obj);
         PyErr_SetString(PyExc_TypeError, "build_array() expects an integer or a parsable float");
+        return NULL;
     }    
 
     gsl_matrix** frm_array = build_frm_array(fr_sph, n_size);

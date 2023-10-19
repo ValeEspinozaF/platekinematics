@@ -4,7 +4,7 @@
 gsl_matrix* fr_to_rotation_matrix(const FiniteRot *fr_sph) {
     double x, y, z; 
 
-    double *r = sph2cart(fr_sph->Lon, fr_sph->Lat, fr_sph->Angle);
+    double *r = sph2cart(fr_sph->Lon, fr_sph->Lat, 1.0);
     x = r[0];
     y = r[1];
     z = r[2];
@@ -101,10 +101,10 @@ double* rotation_matrix_to_ea(gsl_matrix* m){
     double *euler_angles = (double*)malloc(3 * sizeof(double));
 
     double m32 = gsl_matrix_get(m, 2, 1);
-    double m33 = gsl_matrix_get(m, 2, 1);
-    double m31 = gsl_matrix_get(m, 2, 1);
-    double m21 = gsl_matrix_get(m, 2, 1);
-    double m11 = gsl_matrix_get(m, 2, 1);
+    double m33 = gsl_matrix_get(m, 2, 2);
+    double m31 = gsl_matrix_get(m, 2, 0);
+    double m21 = gsl_matrix_get(m, 1, 0);
+    double m11 = gsl_matrix_get(m, 0, 0);
 
     euler_angles[0] = atan2(m32, m33);
     euler_angles[1] = atan2(-1 * m31, pow(pow(m32, 2) + pow(m33, 2), 0.5));
@@ -114,12 +114,11 @@ double* rotation_matrix_to_ea(gsl_matrix* m){
 }
 
 //Return an array of Euler angles from an array of 3x3 rotation matrices (expressed in radians).
-gsl_matrix* rotation_matrices_to_eas(gsl_matrix** m_array){
-    size_t n_size = sizeof(m_array) / sizeof(m_array[0]);
-    gsl_matrix* ea_array = gsl_matrix_alloc(3, n_size);
-    
+gsl_matrix* rotation_matrices_to_eas(gsl_matrix** m_array, int dim0_n_size){
 
-    for (size_t i = 0; i < n_size; i++) {
+    gsl_matrix* ea_array = gsl_matrix_alloc(3, dim0_n_size);
+    
+    for (size_t i = 0; i < dim0_n_size; i++) {
         double* ea = rotation_matrix_to_ea(m_array[i]);
         gsl_matrix_set(ea_array, 0, i, ea[0]);
         gsl_matrix_set(ea_array, 1, i, ea[1]);
@@ -132,6 +131,9 @@ gsl_matrix* rotation_matrices_to_eas(gsl_matrix** m_array){
 // Return the set of Euler angles from a finite rotation (expressed in degrees).
 double* fr_to_euler_angles(const FiniteRot *fr_sph) {
     gsl_matrix *matrix = fr_to_rotation_matrix(fr_sph);
+    PySys_WriteStdout("rot_matrix_row1: %f, %f, %f\n", gsl_matrix_get(matrix, 0, 0), gsl_matrix_get(matrix, 0, 1), gsl_matrix_get(matrix, 0, 2));
+    PySys_WriteStdout("rot_matrix_row2: %f, %f, %f\n", gsl_matrix_get(matrix, 1, 0), gsl_matrix_get(matrix, 1, 1), gsl_matrix_get(matrix, 1, 2));
+    PySys_WriteStdout("rot_matrix_row3: %f, %f, %f\n", gsl_matrix_get(matrix, 2, 0), gsl_matrix_get(matrix, 2, 1), gsl_matrix_get(matrix, 2, 2));
 
     double *euler_angles = (double*)malloc(3 * sizeof(double));
 
