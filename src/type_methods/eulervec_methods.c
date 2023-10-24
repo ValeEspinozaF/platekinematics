@@ -46,6 +46,7 @@ PyObject *py_ev_to_numpy(PyObject *self, int Py_UNUSED(_)) {
 }
 
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
+    PyObject *original_type, *original_value, *original_traceback; 
     gsl_matrix *cov_matrix, *correlated_ens;
     double * ev_cart, *_ev_sph;
     bool out_spherical;
@@ -79,9 +80,10 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
     ev_cart = sph2cart(ev_sph->Lon, ev_sph->Lat, ev_sph->AngVelocity);
 
     correlated_ens = correlated_ensemble_3d(cov_matrix, n_size);
+    PyErr_Fetch(&original_type, &original_value, &original_traceback);
     if (correlated_ens == NULL) {
         gsl_matrix_free(cov_matrix);
-        PyErr_SetString(PyExc_MemoryError, "Failed to create correlated ensemble matrix");
+        PyErr_Restore(original_type, original_value, original_traceback);
         return NULL;
     }  
 

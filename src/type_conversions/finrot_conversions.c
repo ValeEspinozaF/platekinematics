@@ -131,9 +131,6 @@ gsl_matrix* rotation_matrices_to_eas(gsl_matrix** m_array, int dim0_n_size){
 // Return the set of Euler angles from a finite rotation (expressed in degrees).
 double* fr_to_euler_angles(const FiniteRot *fr_sph) {
     gsl_matrix *matrix = fr_to_rotation_matrix(fr_sph);
-    PySys_WriteStdout("rot_matrix_row1: %f, %f, %f\n", gsl_matrix_get(matrix, 0, 0), gsl_matrix_get(matrix, 0, 1), gsl_matrix_get(matrix, 0, 2));
-    PySys_WriteStdout("rot_matrix_row2: %f, %f, %f\n", gsl_matrix_get(matrix, 1, 0), gsl_matrix_get(matrix, 1, 1), gsl_matrix_get(matrix, 1, 2));
-    PySys_WriteStdout("rot_matrix_row3: %f, %f, %f\n", gsl_matrix_get(matrix, 2, 0), gsl_matrix_get(matrix, 2, 1), gsl_matrix_get(matrix, 2, 2));
 
     double *euler_angles = (double*)malloc(3 * sizeof(double));
 

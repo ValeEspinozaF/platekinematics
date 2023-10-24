@@ -9,7 +9,6 @@ void average_vector(gsl_matrix* m_cart, double *v_cart, double *v_cov) {
     gsl_matrix_get_row(x, m_cart, 0);
     gsl_matrix_get_row(y, m_cart, 1);
     gsl_matrix_get_row(z, m_cart, 2);
-    PySys_WriteStdout("x0, x1, x2: %f, %f, %f\n", gsl_vector_get(x, 0), gsl_vector_get(x, 1), gsl_vector_get(x, 2));
 
     double x_sum = 0.0;
     double y_sum = 0.0;
