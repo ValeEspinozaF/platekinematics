@@ -64,23 +64,13 @@ PyObject *py_fr_average(PyObject *self, PyObject *args) {
 
     if (fr_avg != NULL) {
         fr_avg->Time = time;
-
-        Covariance *cov = PyObject_New(Covariance, &CovarianceType);
-        if (cov != NULL) {
-            cov->C11 = fr_cov[0] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C12 = fr_cov[1] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C13 = fr_cov[2] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C22 = fr_cov[3] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C23 = fr_cov[4] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C33 = fr_cov[5] * (M_PI / 180.0) * (M_PI / 180.0);
-            fr_avg->Covariance = *cov; 
-            fr_avg->has_covariance = 1;
-            
-        } else {
-            free(fr_cov);
-            PyErr_SetString(PyExc_RuntimeError, "Failed to create Covariance instance");
-            return NULL;
-        }
+        fr_avg->Covariance.C11 = fr_cov[0] * (M_PI / 180.0) * (M_PI / 180.0);
+        fr_avg->Covariance.C12 = fr_cov[1] * (M_PI / 180.0) * (M_PI / 180.0);
+        fr_avg->Covariance.C13 = fr_cov[2] * (M_PI / 180.0) * (M_PI / 180.0);
+        fr_avg->Covariance.C22 = fr_cov[3] * (M_PI / 180.0) * (M_PI / 180.0);
+        fr_avg->Covariance.C23 = fr_cov[4] * (M_PI / 180.0) * (M_PI / 180.0);
+        fr_avg->Covariance.C33 = fr_cov[5] * (M_PI / 180.0) * (M_PI / 180.0);
+        fr_avg->has_covariance = 1;
 
     } else {
         free(fr_cov);

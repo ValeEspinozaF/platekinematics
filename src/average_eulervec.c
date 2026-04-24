@@ -107,23 +107,13 @@ PyObject *py_ev_average(PyObject *self, PyObject *args) {
         ev_avg->AngVelocity = ev_sph_vtr[2];
         ev_avg->TimeRange[0] = tr_list[0 + 1];
         ev_avg->TimeRange[1] = tr_list[1 + 1];
-
-        Covariance *cov = PyObject_New(Covariance, &CovarianceType);
-        if (cov != NULL) {
-            cov->C11 = ev_cov[0] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C12 = ev_cov[1] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C13 = ev_cov[2] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C22 = ev_cov[3] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C23 = ev_cov[4] * (M_PI / 180.0) * (M_PI / 180.0);
-            cov->C33 = ev_cov[5] * (M_PI / 180.0) * (M_PI / 180.0);
-            ev_avg->Covariance = *cov; 
-            ev_avg->has_covariance = 1;
-            
-        } else {
-            free(tr_list);
-            PyErr_SetString(PyExc_RuntimeError, "Failed to create Covariance instance");
-            return NULL;
-        }
+        ev_avg->Covariance.C11 = ev_cov[0] * (M_PI / 180.0) * (M_PI / 180.0);
+        ev_avg->Covariance.C12 = ev_cov[1] * (M_PI / 180.0) * (M_PI / 180.0);
+        ev_avg->Covariance.C13 = ev_cov[2] * (M_PI / 180.0) * (M_PI / 180.0);
+        ev_avg->Covariance.C22 = ev_cov[3] * (M_PI / 180.0) * (M_PI / 180.0);
+        ev_avg->Covariance.C23 = ev_cov[4] * (M_PI / 180.0) * (M_PI / 180.0);
+        ev_avg->Covariance.C33 = ev_cov[5] * (M_PI / 180.0) * (M_PI / 180.0);
+        ev_avg->has_covariance = 1;
 
     } else {
         free(tr_list);

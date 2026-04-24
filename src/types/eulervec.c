@@ -54,16 +54,12 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
 
 
         if (!PyFloat_Check(value1) || !PyFloat_Check(value2)) {
-            Py_XDECREF(value1);
-            Py_XDECREF(value2);
             PyErr_SetString(PyExc_TypeError, "TimeRange elements must be of type float");
             return NULL;
         }
 
         tr1 = PyFloat_AsDouble(value1);
         tr2 = PyFloat_AsDouble(value2);
-        Py_XDECREF(value1);
-        Py_XDECREF(value2);
 
 
         // Check if Lon, Lat, AngVelocity arguments are doubles
@@ -103,7 +99,13 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         self->has_covariance = has_covariance;
 
         if (has_covariance) {
-            self->Covariance = *((Covariance *)cov);
+            Covariance *cov_ptr = (Covariance *)cov;
+            self->Covariance.C11 = cov_ptr->C11;
+            self->Covariance.C12 = cov_ptr->C12;
+            self->Covariance.C13 = cov_ptr->C13;
+            self->Covariance.C22 = cov_ptr->C22;
+            self->Covariance.C23 = cov_ptr->C23;
+            self->Covariance.C33 = cov_ptr->C33;
         }
     }
     return (PyObject *)self;
@@ -124,7 +126,6 @@ static PyObject* EulerVector_repr(EulerVector *self) {
 
 // Destructor function for EulerVector
 static void EulerVector_dealloc(EulerVector *self) {
-    Covariance_dealloc(&(self->Covariance));
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -159,14 +160,19 @@ static PyObject* EulerVector_get_Covariance(EulerVector *self, void *closure) {
         Py_RETURN_NONE;
     }
 
-    Covariance *cov = &(self->Covariance);
+    Covariance *cov = PyObject_New(Covariance, &CovarianceType);
     if (cov == NULL) {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to get Covariance attribute");
-        Py_RETURN_NONE;
-    } else {
-        Py_INCREF(cov);
-        return (PyObject *)cov;
+        PyErr_SetString(PyExc_RuntimeError, "Failed to create Covariance attribute");
+        return NULL;
     }
+
+    cov->C11 = self->Covariance.C11;
+    cov->C12 = self->Covariance.C12;
+    cov->C13 = self->Covariance.C13;
+    cov->C22 = self->Covariance.C22;
+    cov->C23 = self->Covariance.C23;
+    cov->C33 = self->Covariance.C33;
+    return (PyObject *)cov;
 } 
 
 
@@ -236,10 +242,13 @@ static int EulerVector_set_Covariance(EulerVector *self, PyObject *cov_instance,
         return -1;
     }
 
-    Covariance *cov = &(self->Covariance);
-    Py_XDECREF((PyObject *)cov);
-    Py_INCREF(cov_instance);
-    self->Covariance = *((Covariance *)cov_instance);
+    Covariance *cov = (Covariance *)cov_instance;
+    self->Covariance.C11 = cov->C11;
+    self->Covariance.C12 = cov->C12;
+    self->Covariance.C13 = cov->C13;
+    self->Covariance.C22 = cov->C22;
+    self->Covariance.C23 = cov->C23;
+    self->Covariance.C33 = cov->C33;
     self->has_covariance = 1;
     return 0;
 } 

@@ -66,7 +66,6 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
         }
     }
     else {
-        Py_XDECREF(cov);
         PyErr_SetString(PyExc_TypeError, "FiniteRotation() constructor accepts at four or five arguments: Lon, Lat, Angle, Time, *Covariance");
         return NULL;
     }
@@ -80,7 +79,13 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
         self->has_covariance = has_covariance;
 
         if (has_covariance) {
-            self->Covariance = *((Covariance *)cov);
+            Covariance *cov_ptr = (Covariance *)cov;
+            self->Covariance.C11 = cov_ptr->C11;
+            self->Covariance.C12 = cov_ptr->C12;
+            self->Covariance.C13 = cov_ptr->C13;
+            self->Covariance.C22 = cov_ptr->C22;
+            self->Covariance.C23 = cov_ptr->C23;
+            self->Covariance.C33 = cov_ptr->C33;
         }
     }
     return (PyObject *)self;
@@ -100,10 +105,7 @@ static PyObject* FiniteRotation_repr(FiniteRot *self) {
 
 
 static void FiniteRotation_dealloc(FiniteRot *self) {
-    // First, deallocate the nested Covariance object
-    Covariance_dealloc(&(self->Covariance));
-
-    // Then, deallocate the FiniteRot object itself
+    // Covariance is stored by value; there is no owned PyObject reference to free.
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -131,14 +133,19 @@ static PyObject* FiniteRotation_get_Covariance(FiniteRot *self, void *closure) {
         Py_RETURN_NONE;
     }
 
-    Covariance *cov = &(self->Covariance);
+    Covariance *cov = PyObject_New(Covariance, &CovarianceType);
     if (cov == NULL) {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to get Covariance attribute");
-        Py_RETURN_NONE;
-    } else {
-        Py_INCREF(cov);
-        return (PyObject *)cov;
+        PyErr_SetString(PyExc_RuntimeError, "Failed to create Covariance attribute");
+        return NULL;
     }
+
+    cov->C11 = self->Covariance.C11;
+    cov->C12 = self->Covariance.C12;
+    cov->C13 = self->Covariance.C13;
+    cov->C22 = self->Covariance.C22;
+    cov->C23 = self->Covariance.C23;
+    cov->C33 = self->Covariance.C33;
+    return (PyObject *)cov;
 } 
 
 
@@ -201,10 +208,13 @@ static int FiniteRotation_set_Covariance(FiniteRot *self, PyObject *cov_instance
         return -1;
     }
 
-    Covariance *cov = &(self->Covariance);
-    Py_XDECREF((PyObject *)cov);
-    Py_INCREF(cov_instance);
-    self->Covariance = *((Covariance *)cov_instance);
+    Covariance *cov = (Covariance *)cov_instance;
+    self->Covariance.C11 = cov->C11;
+    self->Covariance.C12 = cov->C12;
+    self->Covariance.C13 = cov->C13;
+    self->Covariance.C22 = cov->C22;
+    self->Covariance.C23 = cov->C23;
+    self->Covariance.C33 = cov->C33;
     self->has_covariance = 1;
     return 0;
 } 
