@@ -7,7 +7,7 @@ PyObject *py_ev_average(PyObject *self, PyObject *args);
 
 /* Methods contained in the module */
 static PyMethodDef methodsMethods[] = {
-    {"average_fr", py_fr_average, METH_VARARGS, "average_fr(rotation_matrices, time=0.0) -> FiniteRotation\n\nReturn the average finite rotation from a NumPy array of\nrotation matrices with shape (n_size, 3, 3). The optional\ntime argument sets the Time value on the returned object."},
+    {"average_fr", py_fr_average, METH_VARARGS, "average_fr(ensemble, time=0.0) -> FiniteRotation\n\nReturn the average finite rotation from either a list of\nFiniteRotation objects or a NumPy array of rotation matrices\nwith shape (n_size, 3, 3). The optional time argument sets the\nTime value on the returned object."},
     {"average_ev", py_ev_average, METH_VARARGS, "average_ev(ensemble, time_range=(0.0, 0.0)) -> EulerVector\n\nReturn the average Euler vector from either a NumPy array of\nCartesian coordinates with shape (3, n_size) or a list of\nEulerVector samples. The optional time_range is stored on the\nreturned EulerVector."},
   {NULL, NULL, 0, NULL}
 };

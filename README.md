@@ -56,8 +56,8 @@ src\vcpkg\installed\x64-windows\bin
 - `build_array(n_size, coordinate_system='cartesian')` returns shape `(3, n_size)`
 - `build_ensemble(n_size)` returns a Python list of sampled `EulerVector` objects
 
-`average_fr(rotation_matrices, time=0.0)`
-- expects a NumPy array with shape `(n_size, 3, 3)`
+`average_fr(ensemble, time=0.0)`
+- accepts either a list of `FiniteRotation` objects or a NumPy array with shape `(n_size, 3, 3)`
 - returns one `FiniteRotation`
 
 `average_ev(ensemble, time_range=(0.0, 0.0))`
