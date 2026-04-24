@@ -45,6 +45,10 @@ src\vcpkg\installed\x64-windows\bin
 - `values` must contain 6 floats ordered as `[C11, C12, C13, C22, C23, C33]`
 - `to_numpy()` returns shape `(6,)`
 
+`Stat(mean, stdev)` or `Stat([mean, stdev])`
+- stores `Mean` and `StDev`
+- useful for uncertain velocity components
+
 `FiniteRotation(Lon, Lat, Angle, Time, Covariance=None)`
 - `to_numpy()` returns shape `(4,)` without covariance or `(10,)` with covariance
 - `build_array(n_size)` returns sampled rotation matrices with shape `(n_size, 3, 3)`
@@ -55,6 +59,11 @@ src\vcpkg\installed\x64-windows\bin
 - `to_numpy()` returns shape `(5,)` without covariance or `(11,)` with covariance
 - `build_array(n_size, coordinate_system='cartesian')` returns shape `(3, n_size)`
 - `build_ensemble(n_size)` returns a Python list of sampled `EulerVector` objects
+
+`SurfaceVelocity(Lon, Lat, TotalVel)`
+`SurfaceVelocity(Lon, Lat, EastVel, NorthVel[, TotalVel[, Azimuth]])`
+- `EastVel`, `NorthVel`, `TotalVel`, and `Azimuth` accept `float`, `Stat`, `None`, or a 2-value array-like input interpreted as `[Mean, StDev]`
+- `Lon` and `Lat` are stored in degrees-East and degrees-North
 
 `average_fr(ensemble, time=0.0)`
 - accepts either a list of `FiniteRotation` objects or a NumPy array with shape `(n_size, 3, 3)`
