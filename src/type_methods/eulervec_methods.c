@@ -48,7 +48,7 @@ PyObject *py_ev_to_numpy(PyObject *self, int Py_UNUSED(_)) {
 gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordinate_system) {
     PyObject *original_type, *original_value, *original_traceback; 
     gsl_matrix *cov_matrix, *correlated_ens;
-    double * ev_cart, *_ev_sph;
+    double ev_cart[3], ev_sph_out[3];
     bool out_spherical;
 
 
@@ -77,7 +77,7 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
 
     // ** Take action if covariance-matrix has negative or imaginary eigenvalues
     
-    ev_cart = sph2cart(ev_sph->Lon, ev_sph->Lat, ev_sph->AngVelocity);
+    sph2cart(ev_sph->Lon, ev_sph->Lat, ev_sph->AngVelocity, ev_cart);
 
     correlated_ens = correlated_ensemble_3d(cov_matrix, n_size);
     PyErr_Fetch(&original_type, &original_value, &original_traceback);
@@ -95,10 +95,10 @@ gsl_matrix * build_ev_array(EulerVector *ev_sph, int n_size, const char* coordin
         cy = gsl_matrix_get(correlated_ens, 1, i) + ev_cart[1];
         cz = gsl_matrix_get(correlated_ens, 2, i) + ev_cart[2];
         if (out_spherical) {
-            _ev_sph = cart2sph(cx, cy, cz);
-            gsl_matrix_set(correlated_ens, 0, i, _ev_sph[0]);
-            gsl_matrix_set(correlated_ens, 1, i, _ev_sph[1]);
-            gsl_matrix_set(correlated_ens, 2, i, _ev_sph[2]);
+            cart2sph(cx, cy, cz, ev_sph_out);
+            gsl_matrix_set(correlated_ens, 0, i, ev_sph_out[0]);
+            gsl_matrix_set(correlated_ens, 1, i, ev_sph_out[1]);
+            gsl_matrix_set(correlated_ens, 2, i, ev_sph_out[2]);
         } else {
             gsl_matrix_set(correlated_ens, 0, i, cx);
             gsl_matrix_set(correlated_ens, 1, i, cy);

@@ -14,7 +14,8 @@ static gsl_matrix* pylist_ev_to_gslmatrix(PyObject *py_array) {
         } */ //FIXME Not working whyyy
 
         EulerVector *ev = (EulerVector *)ev_pyob;
-        double *ev_cart = sph2cart(ev->Lon, ev->Lat, ev->AngVelocity);
+    double ev_cart[3];
+    sph2cart(ev->Lon, ev->Lat, ev->AngVelocity, ev_cart);
 
         gsl_matrix_set(ev_gsl, 0, i, ev_cart[0]);
         gsl_matrix_set(ev_gsl, 1, i, ev_cart[1]);
@@ -98,7 +99,8 @@ PyObject *py_ev_average(PyObject *self, PyObject *args) {
     average_vector(ev_gsl, ev_cart, ev_cov);
     gsl_matrix_free(ev_gsl);
 
-    double *ev_sph_vtr = cart2sph(ev_cart[0], ev_cart[1], ev_cart[2]);
+    double ev_sph_vtr[3];
+    cart2sph(ev_cart[0], ev_cart[1], ev_cart[2], ev_sph_vtr);
 
     EulerVector *ev_avg = PyObject_New(EulerVector, &EulerVectorType);
     if (ev_avg != NULL) {

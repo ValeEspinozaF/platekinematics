@@ -11,25 +11,20 @@ inline double to_radians(double degrees) {
 }
 
 
-double * sph2cart(double lon, double lat, double mag) {
-    static double r[3];
+void sph2cart(double lon, double lat, double mag, double out[3]) {
     double lon_rad = to_radians(lon);
     double lat_rad = to_radians(lat);
 
-    r[0] = mag * cos(lon_rad) * cos(lat_rad);
-    r[1] = mag * sin(lon_rad) * cos(lat_rad);
-    r[2] = mag * sin(lat_rad);
-
-    return r;
+  out[0] = mag * cos(lon_rad) * cos(lat_rad);
+  out[1] = mag * sin(lon_rad) * cos(lat_rad);
+  out[2] = mag * sin(lat_rad);
 }
 
 
-double * cart2sph(double x, double y, double z) {
-    static double r[3];
-    r[0] = to_degrees(atan2(y, x)); //lon
-    r[1] = to_degrees(atan2(z, sqrt(x * x + y * y))); //lat
-    r[2] = sqrt(x * x + y * y + z * z); //angle
-    return r;
+void cart2sph(double x, double y, double z, double out[3]) {
+  out[0] = to_degrees(atan2(y, x)); //lon
+  out[1] = to_degrees(atan2(z, sqrt(x * x + y * y))); //lat
+  out[2] = sqrt(x * x + y * y + z * z); //angle
 }
 
 
@@ -65,25 +60,25 @@ static PyObject *py_to_radians(PyObject *self, PyObject *args) {
 
 static PyObject *py_sph2cart(PyObject *self, PyObject *args) {
   double lon, lat, mag;
-  double *result;
+  double result[3];
 
   if (!PyArg_ParseTuple(args, "ddd", &lon, &lat, &mag)) {
     return NULL;
   }
 
-  result = sph2cart(lon, lat, mag);
+  sph2cart(lon, lat, mag, result);
   return Py_BuildValue("ddd", result[0], result[1], result[2]);
 }
 
 static PyObject *py_cart2sph(PyObject *self, PyObject *args) {
   double x, y, z;
-  double *result;
+  double result[3];
 
   if (!PyArg_ParseTuple(args, "ddd", &x, &y, &z)) {
     return NULL;
   }
 
-  result = cart2sph(x, y, z);
+  cart2sph(x, y, z, result);
   return Py_BuildValue("ddd", result[0], result[1], result[2]);
 }
 

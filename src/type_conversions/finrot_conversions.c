@@ -4,7 +4,8 @@
 gsl_matrix* fr_to_rotation_matrix(const FiniteRot *fr_sph) {
     double x, y, z; 
 
-    double *r = sph2cart(fr_sph->Lon, fr_sph->Lat, 1.0);
+    double r[3];
+    sph2cart(fr_sph->Lon, fr_sph->Lat, 1.0, r);
     x = r[0];
     y = r[1];
     z = r[2];
@@ -35,7 +36,8 @@ FiniteRot* rotation_matrix_to_fr(gsl_matrix* m) {
     double y = gsl_matrix_get(m, 0, 2) - gsl_matrix_get(m, 2, 0);
     double z = gsl_matrix_get(m, 1, 0) - gsl_matrix_get(m, 0, 1);
 
-    double* fr_sph = cart2sph(x, y, z);
+    double fr_sph[3];
+    cart2sph(x, y, z, fr_sph);
     double r = sqrt(pow(x,2) + pow(y,2) + pow(z,2));
     double t = gsl_matrix_get(m, 0, 0) + gsl_matrix_get(m, 1, 1) + gsl_matrix_get(m, 2, 2);
     double mag = to_degrees(atan2(r, t - 1) );
