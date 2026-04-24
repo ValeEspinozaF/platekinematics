@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: platekinematics
+Version: 0.1
+Summary: Tools for easy handling of plate kinematic functions
+Author: Valentina Espinoza
+Author-email: valentina0694@hotmail.com
+Requires-Python: >=3.8
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: license-file
+Dynamic: requires-python
+Dynamic: summary

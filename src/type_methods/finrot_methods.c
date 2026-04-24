@@ -3,6 +3,7 @@
 gsl_vector* cov_to_gsl_vector(Covariance *cov);
 PyObject* build_numpy_1Darray(gsl_vector *cA);
 gsl_matrix* correlated_ensemble_3d(gsl_matrix *cov_matrix, int n_size);
+gsl_matrix** build_frm_array(FiniteRot *fr_sph, int n_size);
 
 
 gsl_vector* fr_to_gsl_vector(FiniteRot *fr_sph) {
