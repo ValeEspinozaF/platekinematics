@@ -9,6 +9,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      CIBW_BUILD_VERBOSITY: 3
     strategy:
       fail-fast: false
       matrix:
@@ -29,6 +31,7 @@ jobs:
       - name: Install GSL via vcpkg
         run: |
           & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install gsl:x64-windows
+          echo "PK_GSL_LIB_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib" >> $env:GITHUB_ENV
         shell: pwsh
 
       - name: Build Wheels

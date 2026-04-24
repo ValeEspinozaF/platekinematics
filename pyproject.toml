@@ -13,4 +13,4 @@ skip = "*-win32"
 [tool.cibuildwheel.windows]
 before-build = "python -m pip install -U pip numpy delvewheel"
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel} --add-path %VCPKG_INSTALLATION_ROOT%\\installed\\x64-windows\\bin"
-environment = { PK_GSL_LIB_DIR = "%VCPKG_INSTALLATION_ROOT%\\installed\\x64-windows\\lib" }
+build-verbosity = 3
