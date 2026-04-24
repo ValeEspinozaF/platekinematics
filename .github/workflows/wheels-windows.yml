@@ -26,6 +26,11 @@ jobs:
       - name: Install Build Tools
         run: python -m pip install -U pip cibuildwheel
 
+      - name: Install GSL via vcpkg
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install gsl:x64-windows
+        shell: pwsh
+
       - name: Build Wheels
         run: python -m cibuildwheel --platform windows
 
