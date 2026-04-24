@@ -85,10 +85,10 @@ static PyObject *py_cart2sph(PyObject *self, PyObject *args) {
 
 /* Methods contained in the module */
 static PyMethodDef sphericalMethods[] = {
-  {"to_degrees", py_to_degrees, METH_VARARGS, "Convert angles from radians to degrees."},
-  {"to_radians", py_to_radians, METH_VARARGS, "Convert angles from degrees to radians."},
-  {"sph2cart", py_sph2cart, METH_VARARGS, "Convert spherical coordinates to cartesian coordinates. Both input and outputs are expressed in degrees. "},
-  {"cart2sph", py_cart2sph, METH_VARARGS, "Convert cartesian coordinates to spherical coordinates. Both input and outputs are expressed in degrees. "},
+  {"to_degrees", py_to_degrees, METH_VARARGS, "to_degrees(angle_radians) -> float\n\nConvert an angle from radians to degrees."},
+  {"to_radians", py_to_radians, METH_VARARGS, "to_radians(angle_degrees) -> float\n\nConvert an angle from degrees to radians."},
+  {"sph2cart", py_sph2cart, METH_VARARGS, "sph2cart(lon, lat, magnitude) -> tuple[float, float, float]\n\nConvert spherical coordinates in degrees to Cartesian\ncoordinates (x, y, z)."},
+  {"cart2sph", py_cart2sph, METH_VARARGS, "cart2sph(x, y, z) -> tuple[float, float, float]\n\nConvert Cartesian coordinates to spherical coordinates\n(lon, lat, magnitude), with angular outputs in degrees."},
   {NULL, NULL, 0, NULL}
 };
 
@@ -97,7 +97,7 @@ static PyMethodDef sphericalMethods[] = {
 static struct PyModuleDef spherical_functions = {
   PyModuleDef_HEAD_INIT,
   "spherical_functions",
-  "Functions for coordinate system transformations in spherical geometry.",
+  "Coordinate conversion helpers for spherical geometry.",
   -1,
   sphericalMethods
 };

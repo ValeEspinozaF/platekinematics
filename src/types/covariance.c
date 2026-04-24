@@ -195,14 +195,14 @@ static PyGetSetDef Covariance_getsetters[] = {
 
 
 static PyMethodDef Covariance_methods[] = {
-    {"to_numpy", py_cov_to_numpy, METH_NOARGS, "Converts a Covariance() instance to a numpy array."},
+    {"to_numpy", py_cov_to_numpy, METH_NOARGS, "to_numpy() -> numpy.ndarray\n\nReturn a 1D array of shape (6,) with covariance values in the order [C11, C12, C13, C22, C23, C33]."},
     {NULL, NULL, 0, NULL}
 };
 
 PyTypeObject CovarianceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.Covariance",
-    .tp_doc = "Covariance object with attributes C11-C33",
+    .tp_doc = "Covariance(values=None)\n\nCompact representation of a symmetric 3x3 covariance matrix.\n\nParameters\n----------\nvalues : list, tuple, or numpy.ndarray of 6 floats, optional\n    Values ordered as [C11, C12, C13, C22, C23, C33].\n    If omitted, the default is the identity-like covariance\n    [1.0, 0.0, 0.0, 1.0, 0.0, 1.0].",
     .tp_members = Covariance_members,
     .tp_repr = (reprfunc)Covariance_repr,
     .tp_basicsize = sizeof(Covariance),

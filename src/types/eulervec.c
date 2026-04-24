@@ -266,9 +266,9 @@ static PyGetSetDef EulerVector_getsetters[] = {
 
 
 static PyMethodDef EulerVector_methods[] = {
-    {"to_numpy", py_ev_to_numpy, METH_NOARGS, "Converts a EulerVector() instance to a numpy array."},
-    {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "Draws n EulerVector() samples from the covariance of a given Euler vector."},
-    {"build_array", py_build_ev_array, METH_VARARGS, "Draws n Euler vector coordinate samples and stores them in a 3byn array."},
+    {"to_numpy", py_ev_to_numpy, METH_NOARGS, "to_numpy() -> numpy.ndarray\n\nReturn a 1D array with the Euler vector values.\n\nWithout covariance the shape is (5,) and the values are\n[Lon, Lat, AngVelocity, TimeRange[0], TimeRange[1]].\n\nWith covariance the shape is (11,) and the covariance terms\n[C11, C12, C13, C22, C23, C33] are appended.",},
+    {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "build_ensemble(n_size) -> list\n\nDraw n_size samples from the EulerVector covariance and return\na Python list of EulerVector objects. Sampled objects keep the\noriginal TimeRange and do not carry covariance values.",},
+    {"build_array", py_build_ev_array, METH_VARARGS, "build_array(n_size, coordinate_system='cartesian') -> numpy.ndarray\n\nDraw n_size samples from the EulerVector covariance and return\na NumPy array of shape (3, n_size).\n\ncoordinate_system may be 'cartesian' or 'spherical'. The default\nis 'cartesian'. Requires the object to have a Covariance.",},
     {NULL, NULL, 0, NULL}
 }; 
 
@@ -276,7 +276,7 @@ static PyMethodDef EulerVector_methods[] = {
 PyTypeObject EulerVectorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.EulerVector",
-    .tp_doc = "EulerVector object",
+    .tp_doc = "EulerVector(Lon=0.0, Lat=0.0, AngVelocity=0.0, TimeRange=(0.0, 0.0), Covariance=None)\n\nEuler pole defined by longitude, latitude, angular velocity,\nand a two-value time range. An optional Covariance can be used\nto generate ensembles and sampled arrays.",
     .tp_members = EulerVector_members,
     .tp_repr = (reprfunc)EulerVector_repr,
     .tp_basicsize = sizeof(EulerVector),

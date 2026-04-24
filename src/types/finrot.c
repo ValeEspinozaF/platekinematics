@@ -2,6 +2,7 @@
 
 PyObject *py_fr_to_numpy(PyObject *self, int Py_UNUSED(_));
 PyObject *py_build_frm_array(PyObject *self, PyObject *args);
+PyObject *py_build_fr_ensemble(PyObject *self, PyObject *args);
 
 static PyMemberDef FiniteRotation_members[] = {
     {"Lon", T_DOUBLE, offsetof(FiniteRot, Lon), 0, "Longitude of the rotation axis in degrees-East."},
@@ -230,8 +231,9 @@ static PyGetSetDef FiniteRotation_getsetters[] = {
 
 
 static PyMethodDef FiniteRotation_methods[] = {
-    {"to_numpy", py_fr_to_numpy, METH_NOARGS, "Converts a FiniteRotation() instance to a numpy array."},
-    {"build_array", py_build_frm_array, METH_VARARGS, "Draws n FiniteRotation() samples from the covariance of a given finite rotation."},
+    {"to_numpy", py_fr_to_numpy, METH_NOARGS, "to_numpy() -> numpy.ndarray\n\nReturn a 1D array with the finite rotation values.\n\nWithout covariance the shape is (4,) and the values are\n[Lon, Lat, Angle, Time].\n\nWith covariance the shape is (10,) and the covariance terms\n[C11, C12, C13, C22, C23, C33] are appended.",},
+    {"build_array", py_build_frm_array, METH_VARARGS, "build_array(n_size) -> numpy.ndarray\n\nDraw n_size samples from the finite rotation covariance and\nreturn a NumPy array of rotation matrices with shape\n(n_size, 3, 3). Requires the object to have a Covariance.",},
+    {"build_ensemble", py_build_fr_ensemble, METH_VARARGS, "build_ensemble(n_size) -> list\n\nDraw n_size samples from the finite rotation covariance and\nreturn a Python list of FiniteRotation objects. Sampled objects\nkeep the original Time value and do not carry covariance values.",},
     {NULL, NULL, 0, NULL}
 };
 
@@ -239,7 +241,7 @@ static PyMethodDef FiniteRotation_methods[] = {
 PyTypeObject FiniteRotationType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pk_structs.FiniteRotation",
-    .tp_doc = "FiniteRotation object",
+    .tp_doc = "FiniteRotation(Lon=0.0, Lat=0.0, Angle=0.0, Time=0.0, Covariance=None)\n\nFinite rotation defined by pole longitude, pole latitude,\nrotation angle, and age. An optional Covariance can be attached\nfor uncertainty propagation and ensemble generation.",
     .tp_members = FiniteRotation_members,
     .tp_repr = (reprfunc)FiniteRotation_repr,
     .tp_basicsize = sizeof(FiniteRot),

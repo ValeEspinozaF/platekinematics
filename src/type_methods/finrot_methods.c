@@ -45,6 +45,47 @@ PyObject *py_fr_to_numpy(PyObject *self, int Py_UNUSED(_)) {
 }
 
 
+PyObject *build_fr_ensemble(FiniteRot *fr_sph, int n_size) {
+    gsl_matrix **frm_array = build_frm_array(fr_sph, n_size);
+
+    PyObject *original_type, *original_value, *original_traceback;
+    PyErr_Fetch(&original_type, &original_value, &original_traceback);
+    if (frm_array == NULL) {
+        PyErr_Restore(original_type, original_value, original_traceback);
+        return NULL;
+    }
+
+    PyObject *fr_ens = PyList_New(n_size);
+    if (fr_ens == NULL) {
+        for (int i = 0; i < n_size; ++i) {
+            gsl_matrix_free(frm_array[i]);
+        }
+        free(frm_array);
+        PyErr_SetString(PyExc_MemoryError, "Failed to create Python list");
+        return NULL;
+    }
+
+    for (int i = 0; i < n_size; ++i) {
+        FiniteRot *fr = rotation_matrix_to_fr(frm_array[i]);
+        gsl_matrix_free(frm_array[i]);
+
+        if (fr == NULL) {
+            free(frm_array);
+            Py_DECREF(fr_ens);
+            PyErr_SetString(PyExc_RuntimeError, "Failed to create FiniteRotation instance");
+            return NULL;
+        }
+
+        fr->Time = fr_sph->Time;
+        fr->has_covariance = 0;
+        PyList_SET_ITEM(fr_ens, i, (PyObject *)fr);
+    }
+
+    free(frm_array);
+    return fr_ens;
+}
+
+
 // Draw n_size rotation matrix samples from the covariance of a given finite rotation.
 gsl_matrix** build_frm_array(FiniteRot *fr_sph, int n_size) {
     PyObject *original_type, *original_value, *original_traceback; 
@@ -139,4 +180,35 @@ PyObject *py_build_frm_array(PyObject *self, PyObject *args) {
     }  
 
     return build_numpy_3Darray(frm_array, n_size);
+}
+
+
+PyObject *py_build_fr_ensemble(PyObject *self, PyObject *args) {
+    FiniteRot *fr_sph = (FiniteRot *)self;
+    PyObject *n_size_obj = NULL;
+    int n_size;
+
+    if (PyTuple_Size(args) != 1) {
+        PyErr_SetString(PyExc_TypeError, "build_ensemble() expects a single argument, the number of samples to draw from the covariance matrix");
+        return NULL;
+    }
+
+    if (!PyArg_ParseTuple(args, "O", &n_size_obj)) {
+        PyErr_SetString(PyExc_TypeError, "Failed to parse input argument");
+        return NULL;
+    }
+
+    if (PyLong_Check(n_size_obj)) {
+        n_size = (int)PyLong_AsLong(n_size_obj);
+
+    } else if (PyFloat_Check(n_size_obj)) {
+        double float_value = PyFloat_AsDouble(n_size_obj);
+        n_size = (int)float_value;
+
+    } else {
+        PyErr_SetString(PyExc_TypeError, "build_ensemble() expects an integer or a parsable float");
+        return NULL;
+    }
+
+    return build_fr_ensemble(fr_sph, n_size);
 }
