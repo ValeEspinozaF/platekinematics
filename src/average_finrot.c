@@ -5,52 +5,30 @@
 void average_vector(gsl_matrix* m_cart, double *v_cart, double *v_cov);
 
 
-static gsl_matrix** pylist_fr_to_gslmatrix(PyObject *py_array) {
-    int n_size = (int)PyList_Size(py_array);
-    gsl_matrix** m_array = (gsl_matrix**)malloc(n_size * sizeof(gsl_matrix*));
-
-    for (int i = 0; i < n_size; i++) {
-        m_array[i] = gsl_matrix_alloc(3, 3);
-
-        PyObject *fr_pyob = PyList_GetItem(py_array, i);
-        /* if (!PyObject_TypeCheck(ev_pyob, &FiniteRotType)) {
-            PySys_WriteStdout("Item %d is not a FiniteRot instance\n", i);
-        } */ //FIXME Not working whyyy
-
-        FiniteRot *fr = (FiniteRot *)fr_pyob;
-        m_array[i] = fr_to_rotation_matrix(fr); // can i just set them all at once?
-    }
-
-    return m_array;
-}
-
-
-PyObject *py_fr_average(PyObject *self, PyObject *args) { // This function appears to be good, the problem might lay in the build ensemble part. 
-    int n_args;
-    PyObject *fr_pyob;
-    double time = 0.0;
-
+PyObject *py_fr_average(PyObject *self, PyObject *args) {
     PyObject *original_type, *original_value, *original_traceback; 
+    PyObject *fr_pyob;
+    gsl_matrix** fr_gsl;
+    int n_args;
+    double time = 0.0;
 
     
     n_args = (int)PyTuple_Size(args);
     if (n_args == 1 || n_args == 2) {
         if (!PyArg_ParseTuple(args, "O|d", &fr_pyob, &time)) {
-            PyErr_SetString(PyExc_TypeError, "average() expects two arguments, a numpy array with the rotation matrix ensemble and float with the age of the ensemble");
+            PyErr_SetString(PyExc_TypeError, "average_fr() expects two arguments, a numpy array with the rotation matrix ensemble and float with the age of the ensemble");
             return NULL;
         }
     } else {
-        PyErr_SetString(PyExc_TypeError, "average() expects two arguments, a numpy array with the rotation matrix ensemble and float with the age of the ensemble");
+        PyErr_SetString(PyExc_TypeError, "average_fr() expects two arguments, a numpy array with the rotation matrix ensemble and float with the age of the ensemble");
         return NULL; 
     }
-
-
-    gsl_matrix** fr_gsl;
-    npy_intp* ptr_dim0_n_size = (npy_intp*)malloc(sizeof(npy_intp));
+    
+    int* ptr_dim0_n_size = (int*)malloc(sizeof(int));
+    
 
     if (PyArray_Check(fr_pyob)) {
         fr_gsl = pyarray3D_to_gslmatrix(fr_pyob, &ptr_dim0_n_size);
-
         if (fr_gsl == NULL) {
             PyErr_Fetch(&original_type, &original_value, &original_traceback);
             PyErr_Restore(original_type, original_value, original_traceback);
@@ -58,34 +36,23 @@ PyObject *py_fr_average(PyObject *self, PyObject *args) { // This function appea
         }
 
     } else if (PyList_Check(fr_pyob)) {
-        PyErr_SetString(PyExc_TypeError, "not yet implemented for lists");
+        PyErr_SetString(PyExc_NotImplementedError, "average_fr() not implemented for lists");
         return NULL;
-        /* fr_gsl = pylist_fr_to_gslmatrix(fr_pyob);
-        if (fr_gsl == NULL) {
-            PyErr_Fetch(&original_type, &original_value, &original_traceback);
-            PyErr_Restore(original_type, original_value, original_traceback);
-            return NULL;
-        } */
+        
     } else {
-        PyErr_SetString(PyExc_TypeError, "average() expects a numpy array as input");
+        PyErr_SetString(PyExc_TypeError, "average_fr() expects a numpy array as input");
         return NULL;
     }
+
+    // Calculate average finite rotation from GSL matrix
+    gsl_matrix* ea_array = rotation_matrices_to_eas(fr_gsl, *ptr_dim0_n_size);
+
+    for (int i = 0; i < *ptr_dim0_n_size; i++) {
+        gsl_matrix_free(fr_gsl[i]);
+    }   
 
     free(ptr_dim0_n_size);
 
-
-    // Calculate average finite rotation from GSL matrix
-    gsl_matrix* ea_array = rotation_matrices_to_eas(fr_gsl, (int)*ptr_dim0_n_size);
-    if (ea_array == NULL) { //!!! Function does not throw any errors
-        PyErr_Fetch(&original_type, &original_value, &original_traceback);
-        PyErr_Restore(original_type, original_value, original_traceback);
-        return NULL;
-    }
-
-    int n_size = (int)(sizeof(fr_gsl) / sizeof(fr_gsl[0]));
-    for (int i = 0; i < n_size; i++) {
-        gsl_matrix_free(fr_gsl[i]);
-    }   
    
     double* ea_cart = (double*)malloc(3 * sizeof(double));
     double* fr_cov = (double*)malloc(6 * sizeof(double));
@@ -93,7 +60,8 @@ PyObject *py_fr_average(PyObject *self, PyObject *args) { // This function appea
     gsl_matrix_free(ea_array);
 
     FiniteRot* fr_avg = ea_to_finrot(ea_cart);
-    fr_avg->Time = time;
+    free(ea_cart);
+
     if (fr_avg != NULL) {
         fr_avg->Time = time;
 
@@ -109,16 +77,17 @@ PyObject *py_fr_average(PyObject *self, PyObject *args) { // This function appea
             fr_avg->has_covariance = 1;
             
         } else {
+            free(fr_cov);
             PyErr_SetString(PyExc_RuntimeError, "Failed to create Covariance instance");
             return NULL;
         }
 
     } else {
+        free(fr_cov);
         PyErr_SetString(PyExc_RuntimeError, "Failed to create FiniteRotation instance");
         return NULL;
     } 
 
-    free(ea_cart);
     free(fr_cov);
     return (PyObject *)fr_avg;
 }

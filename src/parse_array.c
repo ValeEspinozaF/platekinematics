@@ -33,7 +33,8 @@ gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray) {
     return gsl_m;
 }
 
-gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray, npy_intp **dim0_n_size) {
+gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray, int **dim0_n_size) {
+
     if (!PyArray_Check(pyarray)) {
         PyErr_SetString(PyExc_TypeError, "pyarray_to_gslmatrix() expects an array as input");
         return NULL;
@@ -52,7 +53,7 @@ gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray, npy_intp **dim0_n_size) {
     }
 
     npy_intp *dims = PyArray_DIMS(np_array);
-    ** dim0_n_size = dims[0];
+    ** dim0_n_size = (int) dims[0];
     
     gsl_matrix** m_array = (gsl_matrix**)malloc(dims[0] * sizeof(gsl_matrix*));
     

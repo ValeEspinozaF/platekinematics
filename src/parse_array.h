@@ -4,7 +4,7 @@
 #include "platekinematics.h"
 
 gsl_matrix* pyarray2D_to_gslmatrix(PyObject *pyarray);
-gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray, npy_intp **dim0_n_size);
+gsl_matrix** pyarray3D_to_gslmatrix(PyObject *pyarray, int **dim0_n_size);
 double* parse_tuple(PyObject *py_obj);
 double* parse_list(PyObject *py_obj);
 double* parse_numpy_1Darray(PyObject *py_obj);
