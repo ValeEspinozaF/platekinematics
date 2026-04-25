@@ -299,12 +299,12 @@ PyObject *py_calculate_surface_velocity(PyObject *self, PyObject *args)
 
     free(ev_lon); free(ev_lat); free(ev_ang);
 
-    /* Wrap results as NumPy arrays (copies data; C buffers are freed) */
+    /* Wrap results as NumPy-owned arrays and copy computed buffers. */
     npy_intp dims[1] = {n_size};
-    PyObject *arr_east  = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, eastVel);
-    PyObject *arr_north = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, northVel);
-    PyObject *arr_total = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, totalVel);
-    PyObject *arr_az    = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, azimuth);
+    PyObject *arr_east  = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    PyObject *arr_north = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    PyObject *arr_total = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    PyObject *arr_az    = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
     if (!arr_east || !arr_north || !arr_total || !arr_az) {
         Py_XDECREF(arr_east); Py_XDECREF(arr_north);
@@ -313,17 +313,22 @@ PyObject *py_calculate_surface_velocity(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    /* Transfer buffer ownership to NumPy via a PyCapsule so they are
-       freed when the arrays are garbage-collected. */
-    PyObject *cap_east  = PyCapsule_New(eastVel,  NULL, (PyCapsule_Destructor)free);
-    PyObject *cap_north = PyCapsule_New(northVel, NULL, (PyCapsule_Destructor)free);
-    PyObject *cap_total = PyCapsule_New(totalVel, NULL, (PyCapsule_Destructor)free);
-    PyObject *cap_az    = PyCapsule_New(azimuth,  NULL, (PyCapsule_Destructor)free);
+    double *arr_east_data  = (double *)PyArray_DATA((PyArrayObject *)arr_east);
+    double *arr_north_data = (double *)PyArray_DATA((PyArrayObject *)arr_north);
+    double *arr_total_data = (double *)PyArray_DATA((PyArrayObject *)arr_total);
+    double *arr_az_data    = (double *)PyArray_DATA((PyArrayObject *)arr_az);
 
-    if (cap_east)  PyArray_SetBaseObject((PyArrayObject *)arr_east,  cap_east);
-    if (cap_north) PyArray_SetBaseObject((PyArrayObject *)arr_north, cap_north);
-    if (cap_total) PyArray_SetBaseObject((PyArrayObject *)arr_total, cap_total);
-    if (cap_az)    PyArray_SetBaseObject((PyArrayObject *)arr_az,    cap_az);
+    for (int i = 0; i < n_size; i++) {
+        arr_east_data[i] = eastVel[i];
+        arr_north_data[i] = northVel[i];
+        arr_total_data[i] = totalVel[i];
+        arr_az_data[i] = azimuth[i];
+    }
+
+    free(eastVel);
+    free(northVel);
+    free(totalVel);
+    free(azimuth);
 
     PyObject *result = PyTuple_Pack(4, arr_east, arr_north, arr_total, arr_az);
     Py_DECREF(arr_east); Py_DECREF(arr_north);
