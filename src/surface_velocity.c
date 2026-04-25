@@ -1,3 +1,5 @@
+#define PY_ARRAY_UNIQUE_SYMBOL PLATEKIN_ARRAY_API // Must be defined before importing numpy/arrayobject.h
+#define NO_IMPORT_ARRAY
 /*
  * surface_velocity.c
  *

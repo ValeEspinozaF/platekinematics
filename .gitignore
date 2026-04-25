@@ -27,6 +27,8 @@
 *.so
 *.so.*
 *.dylib
+*.pyd
+*.pyc
 
 # Executables
 *.exe
