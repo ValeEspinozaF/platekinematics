@@ -125,6 +125,20 @@ static PyObject *make_stat(double mean, double stdev)
 }
 
 
+static int covariance_is_zero(const EulerVector *ev)
+{
+    if (!ev->has_covariance)
+        return 1;
+
+    return ev->Covariance.C11 == 0.0 &&
+           ev->Covariance.C12 == 0.0 &&
+           ev->Covariance.C13 == 0.0 &&
+           ev->Covariance.C22 == 0.0 &&
+           ev->Covariance.C23 == 0.0 &&
+           ev->Covariance.C33 == 0.0;
+}
+
+
 /* ---------------------------------------------------------------------------
  * Core C computation
  *
@@ -190,6 +204,10 @@ static void compute_surface_velocities(
 }
 
 
+/* Forward declaration: defined in eulervec_methods.c */
+PyObject *build_ev_ensemble(EulerVector *ev_sph, int n_size);
+
+
 /* ---------------------------------------------------------------------------
  * Helper: extract EulerVector list → parallel double arrays
  * ---------------------------------------------------------------------------*/
@@ -245,40 +263,244 @@ static int pylist_ev_extract(PyObject *ev_list,
  * Python-exposed functions
  * ---------------------------------------------------------------------------*/
 
+/* ---------------------------------------------------------------------------
+ * calculate_sv_from_single_ev
+ *
+ * Internal helper for the single-EulerVector + multi-point overload.
+ *
+ * If ev->has_covariance: builds an ensemble of ens_n_size samples and
+ * returns a list of SurfaceVelocity objects with Stat fields.
+ * Otherwise uses the single EV directly and returns a list with plain
+ * float velocity fields.
+ * ---------------------------------------------------------------------------*/
+static PyObject *calculate_sv_from_single_ev(
+    EulerVector *ev, PyObject *lon_seq, PyObject *lat_seq, int ens_n_size)
+{
+    /* ----- parse lon/lat point sequences ---------------------------------- */
+    if (!PySequence_Check(lon_seq) || !PySequence_Check(lat_seq)) {
+        PyErr_SetString(PyExc_TypeError,
+            "lon and lat arguments must be sequences (list or tuple)");
+        return NULL;
+    }
+    int n_points = (int)PySequence_Length(lon_seq);
+    if (n_points != (int)PySequence_Length(lat_seq)) {
+        PyErr_SetString(PyExc_ValueError, "lon and lat sequences must have equal length");
+        return NULL;
+    }
+    if (n_points == 0) {
+        PyErr_SetString(PyExc_ValueError, "lon / lat sequences are empty");
+        return NULL;
+    }
+
+    double *pnt_lons = (double *)malloc(n_points * sizeof(double));
+    double *pnt_lats = (double *)malloc(n_points * sizeof(double));
+    if (!pnt_lons || !pnt_lats) {
+        free(pnt_lons); free(pnt_lats);
+        PyErr_NoMemory();
+        return NULL;
+    }
+    for (int i = 0; i < n_points; i++) {
+        PyObject *lo = PySequence_GetItem(lon_seq, i);
+        PyObject *la = PySequence_GetItem(lat_seq, i);
+        if (!lo || !la) {
+            Py_XDECREF(lo); Py_XDECREF(la);
+            free(pnt_lons); free(pnt_lats);
+            return NULL;
+        }
+        pnt_lons[i] = PyFloat_AsDouble(lo);
+        pnt_lats[i] = PyFloat_AsDouble(la);
+        Py_DECREF(lo); Py_DECREF(la);
+    }
+
+    /* ----- build EV arrays ------------------------------------------------ */
+    double *ev_lon = NULL, *ev_lat = NULL, *ev_ang = NULL;
+    int ens_size = 0;
+    int use_stat = 0;
+    PyObject *ens_list = NULL;
+
+    if (ev->has_covariance && !covariance_is_zero(ev)) {
+        ens_list = build_ev_ensemble(ev, ens_n_size);
+        if (ens_list == NULL) {
+            free(pnt_lons); free(pnt_lats);
+            return NULL;
+        }
+        if (pylist_ev_extract(ens_list, &ev_lon, &ev_lat, &ev_ang, &ens_size) < 0) {
+            Py_DECREF(ens_list);
+            free(pnt_lons); free(pnt_lats);
+            return NULL;
+        }
+        Py_DECREF(ens_list);
+        use_stat = 1;
+    } else {
+        ev_lon = (double *)malloc(sizeof(double));
+        ev_lat = (double *)malloc(sizeof(double));
+        ev_ang = (double *)malloc(sizeof(double));
+        if (!ev_lon || !ev_lat || !ev_ang) {
+            free(ev_lon); free(ev_lat); free(ev_ang);
+            free(pnt_lons); free(pnt_lats);
+            PyErr_NoMemory();
+            return NULL;
+        }
+        ev_lon[0] = ev->Lon;
+        ev_lat[0] = ev->Lat;
+        ev_ang[0] = ev->AngVelocity;
+        ens_size  = 1;
+        use_stat  = 0;
+    }
+
+    /* ----- per-point computation ----------------------------------------- */
+    PyObject *result = PyList_New(n_points);
+    if (!result) {
+        free(ev_lon); free(ev_lat); free(ev_ang);
+        free(pnt_lons); free(pnt_lats);
+        return NULL;
+    }
+
+    double *eastVel  = (double *)malloc(ens_size * sizeof(double));
+    double *northVel = (double *)malloc(ens_size * sizeof(double));
+    double *totalVel = (double *)malloc(ens_size * sizeof(double));
+    double *azimuth  = (double *)malloc(ens_size * sizeof(double));
+
+    if (!eastVel || !northVel || !totalVel || !azimuth) {
+        free(eastVel); free(northVel); free(totalVel); free(azimuth);
+        free(ev_lon); free(ev_lat); free(ev_ang);
+        free(pnt_lons); free(pnt_lats);
+        Py_DECREF(result);
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    for (int i = 0; i < n_points; i++) {
+        double pnt_lon = pnt_lons[i];
+        double pnt_lat = pnt_lats[i];
+
+        compute_surface_velocities(ev_lon, ev_lat, ev_ang, ens_size,
+                                   pnt_lon, pnt_lat,
+                                   eastVel, northVel, totalVel, azimuth);
+
+        double m_east  = array_mean(eastVel,  ens_size);
+        double m_north = array_mean(northVel, ens_size);
+        double m_total = array_mean(totalVel, ens_size);
+        double m_az    = array_mean(azimuth,  ens_size);
+
+        SurfaceVelocity *sv = PyObject_New(SurfaceVelocity, &SurfaceVelocityType);
+        if (sv == NULL) {
+            free(eastVel); free(northVel); free(totalVel); free(azimuth);
+            free(ev_lon); free(ev_lat); free(ev_ang);
+            free(pnt_lons); free(pnt_lats);
+            Py_DECREF(result);
+            return NULL;
+        }
+
+        sv->Lon = pnt_lon;
+        sv->Lat = pnt_lat;
+
+        if (use_stat) {
+            double s_east  = array_std(eastVel,  ens_size, m_east);
+            double s_north = array_std(northVel, ens_size, m_north);
+            double s_total = array_std(totalVel, ens_size, m_total);
+            double s_az    = array_std(azimuth,  ens_size, m_az);
+            sv->EastVel  = make_stat(m_east,  s_east);
+            sv->NorthVel = make_stat(m_north, s_north);
+            sv->TotalVel = make_stat(m_total, s_total);
+            sv->Azimuth  = make_stat(m_az,    s_az);
+        } else {
+            sv->EastVel  = PyFloat_FromDouble(m_east);
+            sv->NorthVel = PyFloat_FromDouble(m_north);
+            sv->TotalVel = PyFloat_FromDouble(m_total);
+            sv->Azimuth  = PyFloat_FromDouble(m_az);
+        }
+
+        PyList_SET_ITEM(result, i, (PyObject *)sv);
+    }
+
+    free(eastVel); free(northVel); free(totalVel); free(azimuth);
+    free(ev_lon); free(ev_lat); free(ev_ang);
+    free(pnt_lons); free(pnt_lats);
+    return result;
+}
+
+
 /*
- * calculate_surface_velocity(ev_ensemble, lon, lat) -> tuple
+ * calculate_surface_velocity — two call signatures dispatched by argument types
  *
- * Parameters
- * ----------
- * ev_ensemble : list of EulerVector
- *     Ensemble of Euler vector samples in spherical coordinates
- *     (Lon deg-E, Lat deg-N, AngVelocity deg/Myr).
- * lon : float
- *     Longitude of the surface point in degrees-East.
- * lat : float
- *     Latitude of the surface point in degrees-North.
+ * Signature A  (list-of-EVs, single point):
+ *   calculate_surface_velocity(ev_ensemble, lon, lat) -> tuple
+ *   ev_ensemble : list of EulerVector
+ *   lon, lat    : float — geodetic coordinates of the surface point
+ *   Returns a tuple of four 1-D NumPy arrays
+ *   (east_vel, north_vel, total_vel, azimuth), cm/yr / degrees.
  *
- * Returns
- * -------
- * tuple of four 1-D NumPy arrays (float64)
- *     (east_vel, north_vel, total_vel, azimuth), all in cm/yr except
- *     azimuth which is in degrees clockwise from North.
+ * Signature B  (single EV, arrays of points):
+ *   calculate_surface_velocity(ev, lons, lats [, n_size=100000]) -> list
+ *   ev          : EulerVector — if it carries a Covariance an ensemble of
+ *                 n_size samples is drawn; otherwise the single vector is used.
+ *   lons, lats  : sequence of float — geodetic coordinates of the surface points
+ *   n_size      : int (optional, default 100000) — ensemble size when covariance
+ *                 is present.
+ *   Returns a list of SurfaceVelocity objects, one per point.
+ *   Each SurfaceVelocity has Stat fields when covariance is present, plain
+ *   float fields otherwise.
  */
 PyObject *py_calculate_surface_velocity(PyObject *self, PyObject *args)
 {
-    PyObject *ev_pyob;
-    double pnt_lon, pnt_lat;
+    int n_args = (int)PyTuple_Size(args);
+    if (n_args < 1) {
+        PyErr_SetString(PyExc_TypeError,
+            "calculate_surface_velocity() requires at least one argument");
+        return NULL;
+    }
 
-    if (!PyArg_ParseTuple(args, "Odd", &ev_pyob, &pnt_lon, &pnt_lat)) {
+    PyObject *first = PyTuple_GET_ITEM(args, 0);  /* borrowed */
+
+    /* ----- Signature B: single EulerVector + point sequences ------------- */
+    if (PyObject_TypeCheck(first, &EulerVectorType)) {
+        if (n_args < 3 || n_args > 4) {
+            PyErr_SetString(PyExc_TypeError,
+                "calculate_surface_velocity(ev, lons, lats [, n_size=100000])");
+            return NULL;
+        }
+        PyObject *lon_seq  = PyTuple_GET_ITEM(args, 1);
+        PyObject *lat_seq  = PyTuple_GET_ITEM(args, 2);
+        int ens_n_size = 100000;
+        if (n_args == 4) {
+            PyObject *ns = PyTuple_GET_ITEM(args, 3);
+            if (!PyLong_Check(ns)) {
+                PyErr_SetString(PyExc_TypeError, "n_size must be an integer");
+                return NULL;
+            }
+            ens_n_size = (int)PyLong_AsLong(ns);
+        }
+        return calculate_sv_from_single_ev(
+            (EulerVector *)first, lon_seq, lat_seq, ens_n_size);
+    }
+
+    /* ----- Signature A: list-of-EVs + single float point ----------------- */
+    if (!PyList_Check(first)) {
+        PyErr_SetString(PyExc_TypeError,
+            "First argument must be a list of EulerVector objects "
+            "or a single EulerVector");
+        return NULL;
+    }
+
+    if (n_args != 3) {
         PyErr_SetString(PyExc_TypeError,
             "calculate_surface_velocity(ev_ensemble, lon, lat)");
         return NULL;
     }
 
+    PyObject *lon_obj = PyTuple_GET_ITEM(args, 1);
+    PyObject *lat_obj = PyTuple_GET_ITEM(args, 2);
+    if (!PyFloat_Check(lon_obj) || !PyFloat_Check(lat_obj)) {
+        PyErr_SetString(PyExc_TypeError, "lon and lat must be floats");
+        return NULL;
+    }
+    double pnt_lon = PyFloat_AsDouble(lon_obj);
+    double pnt_lat = PyFloat_AsDouble(lat_obj);
+
     double *ev_lon = NULL, *ev_lat = NULL, *ev_ang = NULL;
     int n_size = 0;
-
-    if (pylist_ev_extract(ev_pyob, &ev_lon, &ev_lat, &ev_ang, &n_size) < 0)
+    if (pylist_ev_extract(first, &ev_lon, &ev_lat, &ev_ang, &n_size) < 0)
         return NULL;
 
     double *eastVel  = (double *)malloc(n_size * sizeof(double));
