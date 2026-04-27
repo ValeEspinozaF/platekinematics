@@ -39,4 +39,4 @@ jobs:
         run: python setup.py build_ext --inplace
 
       - name: Run tests
-        run: python -m pytest -q _tests
+        run: python -m pytest -q tests

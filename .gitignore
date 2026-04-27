@@ -27,7 +27,12 @@
 *.so
 *.so.*
 *.dylib
+
+# Python cache
+__pycache__/
+*.pyo
 *.pyd
+*$py.class
 *.pyc
 
 # Executables
