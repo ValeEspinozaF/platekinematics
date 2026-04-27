@@ -1,4 +1,6 @@
 # platekinematics
+[![Tests](https://github.com/ValeEspinozaF/platekinematics/actions/workflows/tests.yml/badge.svg)](https://github.com/ValeEspinozaF/platekinematics/actions/workflows/tests.yml)
+
 Python extension module with tools for easy handling of plate kinematic functions.
 
 

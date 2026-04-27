@@ -80,7 +80,19 @@ static PyObject* Stat_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
 static PyObject* Stat_repr(Stat *self) {
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Stat(Mean=%.6g, StDev=%.6g)", self->Mean, self->StDev);
+    snprintf(buffer, sizeof(buffer), "Stat(%g, %g)", self->Mean, self->StDev);
+    return PyUnicode_FromString(buffer);
+}
+
+static PyObject* Stat_str(Stat *self) {
+    char buffer[160];
+    snprintf(
+        buffer,
+        sizeof(buffer),
+        "Stat:\n\tMean  : %.2f\n\tStDev : %.2f",
+        self->Mean,
+        self->StDev
+    );
     return PyUnicode_FromString(buffer);
 }
 
@@ -113,6 +125,7 @@ PyTypeObject StatType = {
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = Stat_new,
     .tp_repr = (reprfunc)Stat_repr,
+    .tp_str = (reprfunc)Stat_str,
     .tp_members = Stat_members,
     .tp_getset = Stat_getsetters,
 };

@@ -4,6 +4,22 @@ static bool surface_velocity_is_number(PyObject *value) {
     return PyFloat_Check(value) || PyLong_Check(value);
 }
 
+static PyObject *surface_velocity_double_repr(double value) {
+    PyObject *num = PyFloat_FromDouble(value);
+    if (num == NULL) {
+        return NULL;
+    }
+    PyObject *repr = PyObject_Repr(num);
+    Py_DECREF(num);
+    return repr;
+}
+
+static PyObject *surface_velocity_double_str2(double value) {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.2f", value);
+    return PyUnicode_FromString(buffer);
+}
+
 static PyObject *surface_velocity_new_stat(double mean, double stdev) {
     Stat *stat = PyObject_New(Stat, &StatType);
     if (stat == NULL) {
@@ -79,8 +95,51 @@ static PyObject *surface_velocity_optional_repr(PyObject *value) {
     }
     if (PyObject_TypeCheck(value, &StatType)) {
         Stat *stat = (Stat *)value;
-        return PyUnicode_FromFormat("%.6g +- %.6g", stat->Mean, stat->StDev);
+        PyObject *mean_repr = surface_velocity_double_repr(stat->Mean);
+        PyObject *stdev_repr = surface_velocity_double_repr(stat->StDev);
+        PyObject *result;
+
+        if (mean_repr == NULL || stdev_repr == NULL) {
+            Py_XDECREF(mean_repr);
+            Py_XDECREF(stdev_repr);
+            return NULL;
+        }
+
+        result = PyUnicode_FromFormat("%U +- %U", mean_repr, stdev_repr);
+        Py_DECREF(mean_repr);
+        Py_DECREF(stdev_repr);
+        return result;
     }
+    return PyObject_Str(value);
+}
+
+static PyObject *surface_velocity_optional_str(PyObject *value) {
+    if (value == Py_None) {
+        return PyUnicode_FromString("None");
+    }
+
+    if (PyObject_TypeCheck(value, &StatType)) {
+        Stat *stat = (Stat *)value;
+        PyObject *mean_str = surface_velocity_double_str2(stat->Mean);
+        PyObject *stdev_str = surface_velocity_double_str2(stat->StDev);
+        PyObject *result;
+
+        if (mean_str == NULL || stdev_str == NULL) {
+            Py_XDECREF(mean_str);
+            Py_XDECREF(stdev_str);
+            return NULL;
+        }
+
+        result = PyUnicode_FromFormat("%U +- %U", mean_str, stdev_str);
+        Py_DECREF(mean_str);
+        Py_DECREF(stdev_str);
+        return result;
+    }
+
+    if (surface_velocity_is_number(value)) {
+        return surface_velocity_double_str2(PyFloat_AsDouble(value));
+    }
+
     return PyObject_Str(value);
 }
 
@@ -169,13 +228,17 @@ static void SurfaceVelocity_dealloc(SurfaceVelocity *self) {
 }
 
 static PyObject* SurfaceVelocity_repr(SurfaceVelocity *self) {
+    PyObject *lon = surface_velocity_double_repr(self->Lon);
+    PyObject *lat = surface_velocity_double_repr(self->Lat);
     PyObject *east = surface_velocity_optional_repr(self->EastVel);
     PyObject *north = surface_velocity_optional_repr(self->NorthVel);
     PyObject *total = surface_velocity_optional_repr(self->TotalVel);
     PyObject *azimuth = surface_velocity_optional_repr(self->Azimuth);
     PyObject *result;
 
-    if (east == NULL || north == NULL || total == NULL || azimuth == NULL) {
+    if (lon == NULL || lat == NULL || east == NULL || north == NULL || total == NULL || azimuth == NULL) {
+        Py_XDECREF(lon);
+        Py_XDECREF(lat);
         Py_XDECREF(east);
         Py_XDECREF(north);
         Py_XDECREF(total);
@@ -184,9 +247,49 @@ static PyObject* SurfaceVelocity_repr(SurfaceVelocity *self) {
     }
 
     result = PyUnicode_FromFormat(
-        "SurfaceVelocity(Lon=%.6g, Lat=%.6g, EastVel=%U, NorthVel=%U, TotalVel=%U, Azimuth=%U)",
-        self->Lon, self->Lat, east, north, total, azimuth);
+        "SurfaceVelocity(Lon=%U, Lat=%U, EastVel=%U, NorthVel=%U, TotalVel=%U, Azimuth=%U)",
+        lon, lat, east, north, total, azimuth);
 
+    Py_DECREF(lon);
+    Py_DECREF(lat);
+    Py_DECREF(east);
+    Py_DECREF(north);
+    Py_DECREF(total);
+    Py_DECREF(azimuth);
+    return result;
+}
+
+static PyObject* SurfaceVelocity_str(SurfaceVelocity *self) {
+    PyObject *lon = surface_velocity_double_str2(self->Lon);
+    PyObject *lat = surface_velocity_double_str2(self->Lat);
+    PyObject *east = surface_velocity_optional_str(self->EastVel);
+    PyObject *north = surface_velocity_optional_str(self->NorthVel);
+    PyObject *total = surface_velocity_optional_str(self->TotalVel);
+    PyObject *azimuth = surface_velocity_optional_str(self->Azimuth);
+    PyObject *result;
+
+    if (lon == NULL || lat == NULL || east == NULL || north == NULL || total == NULL || azimuth == NULL) {
+        Py_XDECREF(lon);
+        Py_XDECREF(lat);
+        Py_XDECREF(east);
+        Py_XDECREF(north);
+        Py_XDECREF(total);
+        Py_XDECREF(azimuth);
+        return NULL;
+    }
+
+    result = PyUnicode_FromFormat(
+        "SurfaceVelocity:\n"
+        "\tLon      : %U\n"
+        "\tLat      : %U\n"
+        "\tEastVel  : %U\n"
+        "\tNorthVel : %U\n"
+        "\tTotalVel : %U\n"
+        "\tAzimuth  : %U",
+        lon, lat, east, north, total, azimuth);
+
+    Py_DECREF(lon);
+    Py_DECREF(lat);
     Py_DECREF(east);
     Py_DECREF(north);
     Py_DECREF(total);
@@ -284,5 +387,6 @@ PyTypeObject SurfaceVelocityType = {
     .tp_new = SurfaceVelocity_new,
     .tp_dealloc = (destructor)SurfaceVelocity_dealloc,
     .tp_repr = (reprfunc)SurfaceVelocity_repr,
+    .tp_str = (reprfunc)SurfaceVelocity_str,
     .tp_getset = SurfaceVelocity_getsetters,
 };

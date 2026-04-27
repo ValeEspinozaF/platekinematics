@@ -85,7 +85,7 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         }
     }
     else {
-        PyErr_SetString(PyExc_TypeError, "EulerVector() constructor accepts at four or five arguments: Lon, Lat, AngVelocity, TimeRange, *Covariance");
+        PyErr_SetString(PyExc_TypeError, "EulerVector() constructor accepts four or five arguments: Lon, Lat, AngVelocity, TimeRange, *Covariance");
         return NULL;
     }
 
