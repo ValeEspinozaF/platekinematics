@@ -26,10 +26,23 @@ def _add_dll_dir_if_exists(path: Path) -> None:
 _pkg_dir = Path(__file__).resolve().parent
 _repo_root = _pkg_dir.parent
 
+_gsl_bin_dir = os.environ.get("PK_GSL_BIN_DIR")
+_gsl_lib_dir = os.environ.get("PK_GSL_LIB_DIR")
+_vcpkg_root = os.environ.get("VCPKG_INSTALLATION_ROOT")
+
 _candidate_dirs = [
     _pkg_dir,
     _repo_root / "src" / "vcpkg" / "installed" / "x64-windows" / "bin",
 ]
+
+if _gsl_bin_dir:
+    _candidate_dirs.append(Path(_gsl_bin_dir))
+
+if _gsl_lib_dir:
+    _candidate_dirs.append(Path(_gsl_lib_dir).parent / "bin")
+
+if _vcpkg_root:
+    _candidate_dirs.append(Path(_vcpkg_root) / "installed" / "x64-windows" / "bin")
 
 _conda_prefix = os.environ.get("CONDA_PREFIX")
 if _conda_prefix:
