@@ -20,3 +20,14 @@ def fr(cov):
 @pytest.fixture
 def ev(cov):
     return pk.EulerVector(3.0, 5.0, 2.0, (4.5, 3.5), cov)
+
+
+@pytest.fixture
+def ev_zero_cov():
+    cov_zero = pk.Covariance(ZERO_COV_VALUES)
+    return pk.EulerVector(3.0, 5.0, 2.0, (4.5, 3.5), cov_zero)
+
+
+@pytest.fixture
+def ev_no_cov():
+    return pk.EulerVector(3.0, 5.0, 2.0, (4.5, 3.5))

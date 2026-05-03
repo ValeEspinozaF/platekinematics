@@ -1,9 +1,59 @@
 
 #include "../pk_structs.h"
+#include <limits.h>
 
 PyObject *py_ev_to_numpy(PyObject *self, int Py_UNUSED(_));
 PyObject *py_build_ev_ensemble(PyObject *self, PyObject *args);
 PyObject *py_build_ev_array(PyObject *self, PyObject *args);
+PyObject *py_calculate_surface_velocity(PyObject *self, PyObject *args);
+
+
+static PyObject *py_ev_calculate_surface_velocity(PyObject *self, PyObject *args)
+{
+    PyObject *lon_in;
+    PyObject *lat_in;
+    PY_LONG_LONG n_size = 100000;
+    Py_ssize_t input_argc = PyTuple_Size(args);
+
+    if (!PyArg_ParseTuple(args, "OO|L", &lon_in, &lat_in, &n_size)) {
+        PyErr_SetString(PyExc_TypeError,
+            "calculate_surface_velocity(lon, lat, n_size=100000) or "
+            "calculate_surface_velocity(lons, lats, n_size=100000)");
+        return NULL;
+    }
+
+    if (n_size <= 0 || n_size > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError,
+            "Nsize must be a positive integer within C int range");
+        return NULL;
+    }
+
+    PyObject *call_args = PyTuple_New(input_argc == 3 ? 4 : 3);
+    if (!call_args)
+        return NULL;
+
+    Py_INCREF(self);
+    PyTuple_SET_ITEM(call_args, 0, self);
+
+    Py_INCREF(lon_in);
+    PyTuple_SET_ITEM(call_args, 1, lon_in);
+
+    Py_INCREF(lat_in);
+    PyTuple_SET_ITEM(call_args, 2, lat_in);
+
+    if (input_argc == 3) {
+        PyObject *n_size_obj = PyLong_FromLongLong(n_size);
+        if (!n_size_obj) {
+            Py_DECREF(call_args);
+            return NULL;
+        }
+        PyTuple_SET_ITEM(call_args, 3, n_size_obj);
+    }
+
+    PyObject *result = py_calculate_surface_velocity(NULL, call_args);
+    Py_DECREF(call_args);
+    return result;
+}
 
 
 static PyMemberDef EulerVector_members[] = {
@@ -269,6 +319,7 @@ static PyMethodDef EulerVector_methods[] = {
     {"to_numpy", py_ev_to_numpy, METH_NOARGS, "to_numpy() -> numpy.ndarray\n\nReturn a 1D array with the Euler vector values.\n\nWithout covariance the shape is (5,) and the values are\n[Lon, Lat, AngVelocity, TimeRange[0], TimeRange[1]].\n\nWith covariance the shape is (11,) and the covariance terms\n[C11, C12, C13, C22, C23, C33] are appended.",},
     {"build_ensemble", py_build_ev_ensemble, METH_VARARGS, "build_ensemble(n_size) -> list\n\nDraw n_size samples from the EulerVector covariance and return\na Python list of EulerVector objects. Sampled objects keep the\noriginal TimeRange and do not carry covariance values.",},
     {"build_array", py_build_ev_array, METH_VARARGS, "build_array(n_size, coordinate_system='cartesian') -> numpy.ndarray\n\nDraw n_size samples from the EulerVector covariance and return\na NumPy array of shape (3, n_size).\n\ncoordinate_system may be 'cartesian' or 'spherical'. The default\nis 'cartesian'. Requires the object to have a Covariance.",},
+    {"calculate_surface_velocity", py_ev_calculate_surface_velocity, METH_VARARGS, "calculate_surface_velocity(lon, lat, n_size=100000) -> SurfaceVelocity\ncalculate_surface_velocity(lons, lats, n_size=100000) -> list\n\nCompute surface velocity from this EulerVector at one or many points.\nIf covariance is present and nonzero, draws an ensemble of n_size and\nreturns Stat fields; otherwise returns float fields.",},
     {NULL, NULL, 0, NULL}
 }; 
 

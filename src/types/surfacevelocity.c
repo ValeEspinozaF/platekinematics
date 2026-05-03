@@ -4,14 +4,10 @@ static bool surface_velocity_is_number(PyObject *value) {
     return PyFloat_Check(value) || PyLong_Check(value);
 }
 
-static PyObject *surface_velocity_double_repr(double value) {
-    PyObject *num = PyFloat_FromDouble(value);
-    if (num == NULL) {
-        return NULL;
-    }
-    PyObject *repr = PyObject_Repr(num);
-    Py_DECREF(num);
-    return repr;
+static PyObject *surface_velocity_double_str4(double value) {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.4f", value);
+    return PyUnicode_FromString(buffer);
 }
 
 static PyObject *surface_velocity_double_str2(double value) {
@@ -95,8 +91,8 @@ static PyObject *surface_velocity_optional_repr(PyObject *value) {
     }
     if (PyObject_TypeCheck(value, &StatType)) {
         Stat *stat = (Stat *)value;
-        PyObject *mean_repr = surface_velocity_double_repr(stat->Mean);
-        PyObject *stdev_repr = surface_velocity_double_repr(stat->StDev);
+        PyObject *mean_repr = surface_velocity_double_str4(stat->Mean);
+        PyObject *stdev_repr = surface_velocity_double_str4(stat->StDev);
         PyObject *result;
 
         if (mean_repr == NULL || stdev_repr == NULL) {
@@ -110,6 +106,11 @@ static PyObject *surface_velocity_optional_repr(PyObject *value) {
         Py_DECREF(stdev_repr);
         return result;
     }
+
+    if (surface_velocity_is_number(value)) {
+        return surface_velocity_double_str4(PyFloat_AsDouble(value));
+    }
+
     return PyObject_Str(value);
 }
 
@@ -120,8 +121,8 @@ static PyObject *surface_velocity_optional_str(PyObject *value) {
 
     if (PyObject_TypeCheck(value, &StatType)) {
         Stat *stat = (Stat *)value;
-        PyObject *mean_str = surface_velocity_double_str2(stat->Mean);
-        PyObject *stdev_str = surface_velocity_double_str2(stat->StDev);
+        PyObject *mean_str = surface_velocity_double_str4(stat->Mean);
+        PyObject *stdev_str = surface_velocity_double_str4(stat->StDev);
         PyObject *result;
 
         if (mean_str == NULL || stdev_str == NULL) {
@@ -137,7 +138,7 @@ static PyObject *surface_velocity_optional_str(PyObject *value) {
     }
 
     if (surface_velocity_is_number(value)) {
-        return surface_velocity_double_str2(PyFloat_AsDouble(value));
+        return surface_velocity_double_str4(PyFloat_AsDouble(value));
     }
 
     return PyObject_Str(value);
@@ -228,8 +229,8 @@ static void SurfaceVelocity_dealloc(SurfaceVelocity *self) {
 }
 
 static PyObject* SurfaceVelocity_repr(SurfaceVelocity *self) {
-    PyObject *lon = surface_velocity_double_repr(self->Lon);
-    PyObject *lat = surface_velocity_double_repr(self->Lat);
+    PyObject *lon = surface_velocity_double_str2(self->Lon);
+    PyObject *lat = surface_velocity_double_str2(self->Lat);
     PyObject *east = surface_velocity_optional_repr(self->EastVel);
     PyObject *north = surface_velocity_optional_repr(self->NorthVel);
     PyObject *total = surface_velocity_optional_repr(self->TotalVel);
@@ -373,7 +374,7 @@ static PyGetSetDef SurfaceVelocity_getsetters[] = {
     {"EastVel", (getter)SurfaceVelocity_get_EastVel, (setter)SurfaceVelocity_set_EastVel, "East-component of the velocity.", NULL},
     {"NorthVel", (getter)SurfaceVelocity_get_NorthVel, (setter)SurfaceVelocity_set_NorthVel, "North-component of the velocity.", NULL},
     {"TotalVel", (getter)SurfaceVelocity_get_TotalVel, (setter)SurfaceVelocity_set_TotalVel, "Total velocity.", NULL},
-    {"Azimuth", (getter)SurfaceVelocity_get_Azimuth, (setter)SurfaceVelocity_set_Azimuth, "Azimuth measured clockwise from North.", NULL},
+    {"Azimuth", (getter)SurfaceVelocity_get_Azimuth, (setter)SurfaceVelocity_set_Azimuth, "Azimuth measured clockwise degrees from North.", NULL},
     {NULL}
 };
 

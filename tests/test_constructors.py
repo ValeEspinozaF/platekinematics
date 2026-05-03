@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 
 from platekinematics import pk_structs as pk
@@ -30,6 +29,25 @@ def test_covariance_bad_length_fails():
         pk.Covariance([1.0, 2.0, 3.0])
 
 
+def test_covariance_stress_constructor_rebinding():
+    slots = {}
+
+    for i in range(5000):
+        cov = pk.Covariance(COV_VALUES)
+        renamed = cov
+        old_name = cov
+        cov = None
+
+        assert renamed.C11 == pytest.approx(COV_VALUES[0])
+        assert old_name.C33 == pytest.approx(COV_VALUES[5])
+
+        slots[f"cov_{i % 16}"] = renamed
+
+    for cov in slots.values():
+        assert cov.C11 == pytest.approx(COV_VALUES[0])
+        assert cov.C33 == pytest.approx(COV_VALUES[5])
+
+
 
 #-- FiniteRotation constructor variants
 def test_finite_rotation_constructor_variants(fr):
@@ -49,6 +67,25 @@ def test_finite_rotation_constructor_variants(fr):
 def test_finite_rotation_bad_length_fails():
     with pytest.raises(TypeError):
         pk.FiniteRotation(1.0, 2.0, 3.0) # lon, lat, angle and time are required
+
+
+def test_finite_rotation_stress_constructor_rebinding(cov):
+    slots = {}
+
+    for i in range(5000):
+        fr = pk.FiniteRotation(10.0, 20.0, 3.0, 4.0, cov)
+        renamed = fr
+        old_name = fr
+        fr = None
+
+        assert renamed.Lon == pytest.approx(10.0)
+        assert old_name.Angle == pytest.approx(3.0)
+
+        slots[f"fr_{i % 16}"] = renamed
+
+    for fr in slots.values():
+        assert fr.Lat == pytest.approx(20.0)
+        assert fr.Time == pytest.approx(4.0)
 
 
 
@@ -73,6 +110,25 @@ def test_euler_vector_bad_length_fails():
         pk.EulerVector(1.0, 2.0, 3.0, 4.0) # time range must be a tuple of two elements
     with pytest.raises(TypeError):
         pk.EulerVector(1.0, 2.0, 3.0) # lon, lat, ang velocity and time range are required
+
+
+def test_euler_vector_stress_constructor_rebinding(cov):
+    slots = {}
+
+    for i in range(5000):
+        ev = pk.EulerVector(10.0, -20.0, 1.5, (0.0, 5.0), cov)
+        renamed = ev
+        old_name = ev
+        ev = None
+
+        assert renamed.Lon == pytest.approx(10.0)
+        assert old_name.AngVelocity == pytest.approx(1.5)
+
+        slots[f"ev_{i % 16}"] = renamed
+
+    for ev in slots.values():
+        assert ev.Lat == pytest.approx(-20.0)
+        assert ev.TimeRange[1] == pytest.approx(5.0)
 
 
 
@@ -100,6 +156,25 @@ def test_stat_bad_length_fails():
         pk.Stat([1.0]) # too few elements in list
     with pytest.raises(TypeError):
         pk.Stat(1.0) # too few arguments
+
+
+def test_stat_stress_constructor_rebinding():
+    slots = {}
+
+    for i in range(5000):
+        st = pk.Stat(2.5, 0.25)
+        renamed = st
+        old_name = st
+        st = None
+
+        assert renamed.Mean == pytest.approx(2.5)
+        assert old_name.StDev == pytest.approx(0.25)
+
+        slots[f"st_{i % 16}"] = renamed
+
+    for st in slots.values():
+        assert st.Mean == pytest.approx(2.5)
+        assert st.StDev == pytest.approx(0.25)
 
 
 #-- SurfaceVelocity constructor variants
@@ -134,3 +209,22 @@ def test_surface_velocity_bad_length_fails():
 
     with pytest.raises(TypeError):
         pk.SurfaceVelocity(10.0, 20.0, 1.0, 2.0, 3.0, 4.0, 5.0) # too many arguments
+
+
+def test_surface_velocity_stress_constructor_rebinding():
+    slots = {}
+
+    for i in range(5000):
+        sv = pk.SurfaceVelocity(10.0, 20.0, 1.0, 2.0, 3.0, 45.0)
+        renamed = sv
+        old_name = sv
+        sv = None
+
+        assert renamed.Lon == pytest.approx(10.0)
+        assert old_name.TotalVel == pytest.approx(3.0)
+
+        slots[f"sv_{i % 16}"] = renamed
+
+    for sv in slots.values():
+        assert sv.Lat == pytest.approx(20.0)
+        assert sv.Azimuth == pytest.approx(45.0)
