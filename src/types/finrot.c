@@ -42,10 +42,12 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
             return NULL;
         }
 
-        // Check if the first four arguments are doubles
-        if (!PyFloat_Check(lon_obj) || !PyFloat_Check(lat_obj) ||
-            !PyFloat_Check(angle_obj) || !PyFloat_Check(time_obj)) {
-            PyErr_SetString(PyExc_TypeError, "Lon, Lat, Angle and Time arguments must be doubles");
+        // Check if the first four arguments are numeric
+        if (!(PyFloat_Check(lon_obj) || PyLong_Check(lon_obj)) ||
+            !(PyFloat_Check(lat_obj) || PyLong_Check(lat_obj)) ||
+            !(PyFloat_Check(angle_obj) || PyLong_Check(angle_obj)) ||
+            !(PyFloat_Check(time_obj) || PyLong_Check(time_obj))) {
+            PyErr_SetString(PyExc_TypeError, "Lon, Lat, Angle and Time arguments must be numeric");
             return NULL;
 
         } else {
@@ -174,8 +176,8 @@ static int FiniteRotation_set_Lon(FiniteRot *self, PyObject *value, void *closur
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Lon attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "Lon attribute must be numeric");
         return -1;
     }
     self->Lon = PyFloat_AsDouble(value);
@@ -187,8 +189,8 @@ static int FiniteRotation_set_Lat(FiniteRot *self, PyObject *value, void *closur
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Lat attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "Lat attribute must be numeric");
         return -1;
     }
     self->Lat = PyFloat_AsDouble(value);
@@ -200,8 +202,8 @@ static int FiniteRotation_set_Angle(FiniteRot *self, PyObject *value, void *clos
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Angle attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "Angle attribute must be numeric");
         return -1;
     }
     self->Angle = PyFloat_AsDouble(value);
@@ -213,8 +215,8 @@ static int FiniteRotation_set_Time(FiniteRot *self, PyObject *value, void *closu
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Time attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "Time attribute must be numeric");
         return -1;
     }
     self->Time = PyFloat_AsDouble(value);

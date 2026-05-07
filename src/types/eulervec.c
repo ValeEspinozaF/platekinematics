@@ -103,8 +103,9 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         PyObject* value2 = PyTuple_GetItem(time_range_obj, 1);
 
 
-        if (!PyFloat_Check(value1) || !PyFloat_Check(value2)) {
-            PyErr_SetString(PyExc_TypeError, "TimeRange elements must be of type float");
+        if (!(PyFloat_Check(value1) || PyLong_Check(value1)) ||
+            !(PyFloat_Check(value2) || PyLong_Check(value2))) {
+            PyErr_SetString(PyExc_TypeError, "TimeRange elements must be numeric");
             return NULL;
         }
 
@@ -112,9 +113,11 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         tr2 = PyFloat_AsDouble(value2);
 
 
-        // Check if Lon, Lat, AngVelocity arguments are doubles
-        if (!PyFloat_Check(lon_obj) || !PyFloat_Check(lat_obj) || !PyFloat_Check(angvel_obj)) {
-            PyErr_SetString(PyExc_TypeError, "Lon, Lat and AngVelocity arguments must be doubles");
+        // Check if Lon, Lat, AngVelocity arguments are numeric
+        if (!(PyFloat_Check(lon_obj) || PyLong_Check(lon_obj)) ||
+            !(PyFloat_Check(lat_obj) || PyLong_Check(lat_obj)) ||
+            !(PyFloat_Check(angvel_obj) || PyLong_Check(angvel_obj))) {
+            PyErr_SetString(PyExc_TypeError, "Lon, Lat and AngVelocity arguments must be numeric");
             return NULL;
 
         } else {
@@ -239,8 +242,8 @@ static int EulerVector_set_Lon(EulerVector *self, PyObject *value, void *closure
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Lon attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "Lon attribute must be numeric");
         return -1;
     }
     self->Lon = PyFloat_AsDouble(value);
@@ -252,8 +255,8 @@ static int EulerVector_set_Lat(EulerVector *self, PyObject *value, void *closure
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Lat attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "Lat attribute must be numeric");
         return -1;
     }
     self->Lat = PyFloat_AsDouble(value);
@@ -265,8 +268,8 @@ static int EulerVector_set_AngVelocity(EulerVector *self, PyObject *value, void 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "AngVelocity attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "AngVelocity attribute must be numeric");
         return -1;
     }
     self->AngVelocity = PyFloat_AsDouble(value);
@@ -282,8 +285,9 @@ static int EulerVector_set_TimeRange(EulerVector *self, PyObject *list, void *cl
     PyObject* value1 = PyTuple_GetItem(list, 0);
     PyObject* value2 = PyTuple_GetItem(list, 1);
 
-    if (!PyFloat_Check(value1) || !PyFloat_Check(value2)) {
-        PyErr_SetString(PyExc_TypeError, "TimeRange elements must be of type float");
+    if (!(PyFloat_Check(value1) || PyLong_Check(value1)) ||
+        !(PyFloat_Check(value2) || PyLong_Check(value2))) {
+        PyErr_SetString(PyExc_TypeError, "TimeRange elements must be numeric");
         return -1;
     }
 

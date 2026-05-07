@@ -130,7 +130,7 @@ static int parse_optional_double(PyObject *obj, const char *name, double *out, i
     }
 
     if (!(PyFloat_Check(obj) || PyLong_Check(obj))) {
-        PyErr_Format(PyExc_TypeError, "%s must be a float when provided", name);
+        PyErr_Format(PyExc_TypeError, "%s must be numeric when provided", name);
         return -1;
     }
 

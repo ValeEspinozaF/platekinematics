@@ -114,8 +114,8 @@ static int Covariance_set_C11(Covariance *self, PyObject *value, void *closure) 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "C11 attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "C11 attribute must be numeric");
         return -1;
     }
     self->C11 = PyFloat_AsDouble(value);
@@ -126,8 +126,8 @@ static int Covariance_set_C12(Covariance *self, PyObject *value, void *closure) 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "C12 attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "C12 attribute must be numeric");
         return -1;
     }
     self->C12 = PyFloat_AsDouble(value);
@@ -138,8 +138,8 @@ static int Covariance_set_C13(Covariance *self, PyObject *value, void *closure) 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "C13 attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "C13 attribute must be numeric");
         return -1;
     }
     self->C13 = PyFloat_AsDouble(value);
@@ -150,8 +150,8 @@ static int Covariance_set_C22(Covariance *self, PyObject *value, void *closure) 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "C22 attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "C22 attribute must be numeric");
         return -1;
     }
     self->C22 = PyFloat_AsDouble(value);
@@ -162,8 +162,8 @@ static int Covariance_set_C23(Covariance *self, PyObject *value, void *closure) 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "C23 attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "C23 attribute must be numeric");
         return -1;
     }
     self->C23 = PyFloat_AsDouble(value);
@@ -174,14 +174,18 @@ static int Covariance_set_C33(Covariance *self, PyObject *value, void *closure) 
         PyErr_SetString(PyExc_TypeError, "Cannot delete the attribute");
         return -1;
     }
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "C33 attribute must be a float");
+    if (!(PyFloat_Check(value) || PyLong_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "C33 attribute must be numeric");
         return -1;
     }
     self->C33 = PyFloat_AsDouble(value);
     return 0;
 }
 
+
+static PyObject* Covariance_get_values(Covariance *self, void *closure) {
+    return py_cov_to_numpy((PyObject *)self, 0);
+}
 
 static PyGetSetDef Covariance_getsetters[] = {
     {"C11", (getter)Covariance_get_C11, (setter)Covariance_set_C11, "C11 attribute", NULL},
@@ -190,6 +194,7 @@ static PyGetSetDef Covariance_getsetters[] = {
     {"C22", (getter)Covariance_get_C22, (setter)Covariance_set_C22, "C22 attribute", NULL},
     {"C23", (getter)Covariance_get_C23, (setter)Covariance_set_C23, "C23 attribute", NULL},
     {"C33", (getter)Covariance_get_C33, (setter)Covariance_set_C33, "C33 attribute", NULL},
+    {"values", (getter)Covariance_get_values, NULL, "numpy.ndarray of shape (6,) with values [C11, C12, C13, C22, C23, C33]", NULL},
     {NULL}
 };
 

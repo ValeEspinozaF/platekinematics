@@ -88,8 +88,8 @@ static double* parse_tuple(PyObject *py_obj) {
 
     for (Py_ssize_t i = 0; i < size; ++i) {
         PyObject *item = PyTuple_GetItem(py_obj, i);
-        if (!PyFloat_Check(item)) {
-            PyErr_SetString(PyExc_TypeError, "Tuple must contain only float values");
+        if (!(PyFloat_Check(item) || PyLong_Check(item))) {
+            PyErr_SetString(PyExc_TypeError, "Tuple must contain only numeric values");
             free(output_list);
             return NULL;
         }
@@ -117,8 +117,8 @@ static double* parse_list(PyObject *py_obj) {
 
     for (Py_ssize_t i = 0; i < size; ++i) {
         PyObject *item = PyList_GetItem(py_obj, i);
-        if (!PyFloat_Check(item)) {
-            PyErr_SetString(PyExc_TypeError, "List must contain only float values");
+        if (!(PyFloat_Check(item) || PyLong_Check(item))) {
+            PyErr_SetString(PyExc_TypeError, "List must contain only numeric values");
             free(output_list);
             return NULL;
         }
@@ -133,6 +133,35 @@ static double* parse_numpy_1Darray(PyObject *py_obj) {
     Py_buffer buffer;
     double* output_list;
     int n;
+
+    if (PyArray_Check(py_obj)) {
+        PyArrayObject *np_array = (PyArrayObject *)PyArray_FROM_OTF(py_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+        if (np_array == NULL) {
+            return NULL;
+        }
+
+        if (PyArray_NDIM(np_array) != 1) {
+            PyErr_SetString(PyExc_TypeError, "Input array must be one-dimensional");
+            Py_DECREF(np_array);
+            return NULL;
+        }
+
+        n = (int)PyArray_DIM(np_array, 0);
+        output_list = (double *)malloc((n + 1) * sizeof(double));
+        if (output_list == NULL) {
+            PyErr_SetString(PyExc_MemoryError, "Memory allocation failed");
+            Py_DECREF(np_array);
+            return NULL;
+        }
+
+        output_list[0] = (double)n;
+        for (int i = 0; i < n; ++i) {
+            output_list[i + 1] = *(double *)PyArray_GETPTR1(np_array, i);
+        }
+
+        Py_DECREF(np_array);
+        return output_list;
+    }
 
     if (PyObject_GetBuffer(py_obj, &buffer, PyBUF_ANY_CONTIGUOUS | PyBUF_FORMAT) == -1){
         return NULL;
