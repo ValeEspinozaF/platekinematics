@@ -35,3 +35,10 @@ src/types/eulervec.c
 src/types/finrot.c
 src/types/stat.c
 src/types/surfacevelocity.c
+tests/test_api_exports.py
+tests/test_average_methods.py
+tests/test_build_methods.py
+tests/test_constructors.py
+tests/test_deconstructor.py
+tests/test_spherical_functions.py
+tests/test_surface_velocity.py

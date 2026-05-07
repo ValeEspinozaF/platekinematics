@@ -5,6 +5,8 @@ PyObject* py_fr_average(PyObject *self, PyObject *args);
 PyObject *py_ev_average(PyObject *self, PyObject *args);
 PyObject *py_calculate_surface_velocity(PyObject *self, PyObject *args);
 PyObject *py_calculate_mean_surface_velocity(PyObject *self, PyObject *args);
+PyObject *py_to_euler_vector(PyObject *self, PyObject *args, PyObject *kwds);
+PyObject *py_to_euler_vector_list(PyObject *self, PyObject *args, PyObject *kwds);
 
 
 /* Methods contained in the module */
@@ -48,13 +50,26 @@ static PyMethodDef methodsMethods[] = {
         "    EastVel, NorthVel, TotalVel, Azimuth fields are Stat objects\n"
         "    (Mean +/- StDev) across the ensemble."
     },
+    {"to_euler_vector", (PyCFunction)py_to_euler_vector, METH_VARARGS | METH_KEYWORDS,
+        "to_euler_vector(obj1, obj2=None, reverse_rot=False, n_size=100000, time=None, time1=None, time2=None) -> EulerVector\n"
+        "Convert total FiniteRotation data to stage EulerVector representations.\n\n"
+        "Supported signatures:\n"
+        "- to_euler_vector(fr, reverse_rot=False, n_size=100000)\n"
+        "- to_euler_vector(fr_samples, time=None, reverse_rot=False)\n"
+        "- to_euler_vector(fr1, fr2, reverse_rot=False, n_size=100000)\n"
+        "- to_euler_vector(fr1_samples, fr2_samples, time1=None, time2=None, reverse_rot=False)"
+    },
+    {"to_euler_vector_list", (PyCFunction)py_to_euler_vector_list, METH_VARARGS | METH_KEYWORDS,
+        "to_euler_vector_list(fr_list, reverse_rot=False, n_size=100000) -> list\n"
+        "Convert a chronological list of total FiniteRotation objects to stage EulerVector objects."
+    },
   {NULL, NULL, 0, NULL}
 };
 
 static PyModuleDef pk_structs = {
     PyModuleDef_HEAD_INIT,
     .m_name = "pk_structs",
-    .m_doc = "Plate kinematics structures and ensemble utilities.\n\nExports Covariance, Stat, FiniteRotation, EulerVector, SurfaceVelocity,\naverage_fr, average_ev, calculate_surface_velocity, and calculate_mean_surface_velocity.",
+    .m_doc = "Plate kinematics structures and ensemble utilities.\n\nExports Covariance, Stat, FiniteRotation, EulerVector, SurfaceVelocity,\naverage_fr, average_ev, calculate_surface_velocity, calculate_mean_surface_velocity,\nto_euler_vector, and to_euler_vector_list.",
     .m_size = -1,
     .m_methods = methodsMethods,
 };

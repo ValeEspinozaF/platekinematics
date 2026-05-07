@@ -148,6 +148,13 @@ static PyObject* EulerVector_new(PyTypeObject *type, PyObject *args, PyObject *k
         self->TimeRange[1] = tr2;
         self->has_covariance = has_covariance;
 
+        self->Covariance.C11 = 0.0;
+        self->Covariance.C12 = 0.0;
+        self->Covariance.C13 = 0.0;
+        self->Covariance.C22 = 0.0;
+        self->Covariance.C23 = 0.0;
+        self->Covariance.C33 = 0.0;
+
         if (has_covariance) {
             Covariance *cov_ptr = (Covariance *)cov;
             self->Covariance.C11 = cov_ptr->C11;

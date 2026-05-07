@@ -79,6 +79,13 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
         self->Time = time;
         self->has_covariance = has_covariance;
 
+        self->Covariance.C11 = 0.0;
+        self->Covariance.C12 = 0.0;
+        self->Covariance.C13 = 0.0;
+        self->Covariance.C22 = 0.0;
+        self->Covariance.C23 = 0.0;
+        self->Covariance.C33 = 0.0;
+
         if (has_covariance) {
             Covariance *cov_ptr = (Covariance *)cov;
             self->Covariance.C11 = cov_ptr->C11;
@@ -95,13 +102,24 @@ static PyObject* FiniteRotation_new(PyTypeObject *type, PyObject *args, PyObject
 
 // Representation of FiniteRotation object
 static PyObject* FiniteRotation_repr(FiniteRot *self) {
-    const char *format = "FiniteRot(Lon=%.2f, Lat=%.2f, Angle=%.3f, Time=%.3f)";
-    char buffer[256];  // Adjust the buffer size as needed
+    PyObject *format = PyUnicode_FromString("FiniteRot(Lon=%.2f, Lat=%.2f, Angle=%.3f, Time=%.3f)");
+    PyObject *values;
+    PyObject *out;
 
-    snprintf(buffer, sizeof(buffer), format,
-             self->Lon, self->Lat, self->Angle, self->Time);
+    if (format == NULL) {
+        return NULL;
+    }
 
-    return PyUnicode_FromString(buffer);
+    values = Py_BuildValue("(dddd)", self->Lon, self->Lat, self->Angle, self->Time);
+    if (values == NULL) {
+        Py_DECREF(format);
+        return NULL;
+    }
+
+    out = PyUnicode_Format(format, values);
+    Py_DECREF(values);
+    Py_DECREF(format);
+    return out;
 }
 
 

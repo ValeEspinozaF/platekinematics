@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from platekinematics import pk_structs as pk
 
@@ -27,6 +28,16 @@ def test_covariance_constructor(cov):
 def test_covariance_bad_length_fails():
     with pytest.raises(ValueError):
         pk.Covariance([1.0, 2.0, 3.0])
+
+
+def test_covariance_numpy_array_constructor():
+    cov = pk.Covariance(np.array(COV_VALUES, dtype=float))
+    assert cov.C11 == pytest.approx(COV_VALUES[0])
+    assert cov.C12 == pytest.approx(COV_VALUES[1])
+    assert cov.C13 == pytest.approx(COV_VALUES[2])
+    assert cov.C22 == pytest.approx(COV_VALUES[3])
+    assert cov.C23 == pytest.approx(COV_VALUES[4])
+    assert cov.C33 == pytest.approx(COV_VALUES[5])
 
 
 def test_covariance_stress_constructor_rebinding():
@@ -67,6 +78,22 @@ def test_finite_rotation_constructor_variants(fr):
 def test_finite_rotation_bad_length_fails():
     with pytest.raises(TypeError):
         pk.FiniteRotation(1.0, 2.0, 3.0) # lon, lat, angle and time are required
+
+
+def test_finite_rotation_list_repr_stable_with_numpy_inputs():
+    fr_numpy = np.array([
+        [1.0, 2.0, 3.0, 4.0, 1.179e-8, -1.317e-9, -2.481e-9, 2.881e-9, -4.622e-9, 9.316e-9],
+        [2.0, 3.0, 4.0, 5.0, 1.179e-8, -1.317e-9, -2.481e-9, 2.881e-9, -4.622e-9, 9.316e-9],
+    ], dtype=float)
+
+    fr_list = []
+    for row in fr_numpy:
+        cov = pk.Covariance([row[4], row[5], row[6], row[7], row[8], row[9]])
+        fr_list.append(pk.FiniteRotation(row[2], row[1], row[3], row[0], cov))
+
+    rendered = repr(fr_list)
+    assert "FiniteRot(" in rendered
+    assert "Lon=" in rendered
 
 
 def test_finite_rotation_stress_constructor_rebinding(cov):

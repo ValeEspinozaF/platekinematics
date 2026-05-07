@@ -47,6 +47,7 @@ setup(
                                           r"src/average_eulervec.c", 
                                           r"src/average_finrot.c", 
                                           r"src/surface_velocity.c",
+                                          r"src/to_euler_vector.c",
                                           ],
                            library_dirs=_gsl_library_dirs(),
                            libraries=['gsl', 'gslcblas'],

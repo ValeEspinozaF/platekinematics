@@ -80,12 +80,11 @@ static double* parse_tuple(PyObject *py_obj) {
     Py_ssize_t size = PyTuple_Size(py_obj);
 
     double *output_list = (double *)malloc((size + 1) * sizeof(double));
-    output_list[0] = (double)size;
-
     if (output_list == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Memory allocation failed");
         return NULL;
     }
+    output_list[0] = (double)size;
 
     for (Py_ssize_t i = 0; i < size; ++i) {
         PyObject *item = PyTuple_GetItem(py_obj, i);
@@ -110,12 +109,11 @@ static double* parse_list(PyObject *py_obj) {
     Py_ssize_t size = PyList_Size(py_obj);
 
     double *output_list = (double *)malloc((size + 1) * sizeof(double));
-    output_list[0] = (double)size;
-
     if (output_list == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Memory allocation failed");
         return NULL;
     }
+    output_list[0] = (double)size;
 
     for (Py_ssize_t i = 0; i < size; ++i) {
         PyObject *item = PyList_GetItem(py_obj, i);
@@ -155,15 +153,20 @@ static double* parse_numpy_1Darray(PyObject *py_obj) {
     }
 
     n = (int)buffer.shape[0];
-    double *data = (double *)buffer.buf;
-    PyBuffer_Release(&buffer);
-
     output_list = (double *)malloc((n + 1) * sizeof(double));
+    if (output_list == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Memory allocation failed");
+        PyBuffer_Release(&buffer);
+        return NULL;
+    }
+
     output_list[0] = (double)n;
 
     for (int i = 0; i < n; ++i) {
-        output_list[i + 1] = data[i];
+        output_list[i + 1] = *(double *)((char *)buffer.buf + i * buffer.strides[0]);
     }
+
+    PyBuffer_Release(&buffer);
 
     return output_list;
 }
