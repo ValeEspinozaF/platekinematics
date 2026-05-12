@@ -1,6 +1,6 @@
 import pytest
 
-from platekinematics import pk_structs as pk
+import platekinematics as pk
 
 
 COV_VALUES = [1.179e-8, -1.317e-9, -2.481e-9, 2.881e-9, -4.622e-9, 9.316e-9]

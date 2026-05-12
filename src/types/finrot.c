@@ -1,4 +1,4 @@
-#include "../pk_structs.h"
+#include "../core_module.h"
 
 PyObject *py_fr_to_numpy(PyObject *self, int Py_UNUSED(_));
 PyObject *py_build_frm_array(PyObject *self, PyObject *args);
@@ -260,7 +260,7 @@ static PyMethodDef FiniteRotation_methods[] = {
 
 PyTypeObject FiniteRotationType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pk_structs.FiniteRotation",
+    .tp_name = "platekinematics.FiniteRotation",
     .tp_doc = "FiniteRotation(Lon=0.0, Lat=0.0, Angle=0.0, Time=0.0, Covariance=None)\n\nFinite rotation defined by pole longitude, pole latitude,\nrotation angle, and age. An optional Covariance can be attached\nfor uncertainty propagation and ensemble generation.",
     .tp_members = FiniteRotation_members,
     .tp_repr = (reprfunc)FiniteRotation_repr,

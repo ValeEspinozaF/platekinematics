@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from platekinematics import pk_structs as pk
+import platekinematics as pk
 
 def _sph2cart(lon_deg, lat_deg, magnitude):
     lon = np.deg2rad(lon_deg)

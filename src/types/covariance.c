@@ -1,4 +1,4 @@
-#include "../pk_structs.h"
+#include "../core_module.h"
 
 PyObject *py_cov_to_numpy(PyObject *self, int Py_UNUSED(_));
 
@@ -206,7 +206,7 @@ static PyMethodDef Covariance_methods[] = {
 
 PyTypeObject CovarianceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pk_structs.Covariance",
+    .tp_name = "platekinematics.Covariance",
     .tp_doc = "Covariance(values=None)\n\nCompact representation of a symmetric 3x3 covariance matrix.\n\nParameters\n----------\nvalues : list, tuple, or numpy.ndarray of 6 floats, optional\n    Values ordered as [C11, C12, C13, C22, C23, C33].\n    If omitted, the default is the identity-like covariance\n    [1.0, 0.0, 0.0, 1.0, 0.0, 1.0].",
     .tp_members = Covariance_members,
     .tp_repr = (reprfunc)Covariance_repr,

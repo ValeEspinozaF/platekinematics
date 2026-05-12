@@ -1,4 +1,4 @@
-from platekinematics import pk_structs as pk
+import platekinematics as pk
 
 
 def test_api_export_names_stable():

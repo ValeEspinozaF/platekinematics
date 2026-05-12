@@ -1,7 +1,7 @@
 #ifndef CONVERSIONS_H
 #define CONVERSIONS_H
 
-#include "../pk_structs.h"
+#include "../core_module.h"
 #include "../spherical_functions.h"
 
 gsl_matrix * cov_to_matrix(Covariance *cov);

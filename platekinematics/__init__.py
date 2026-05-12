@@ -51,9 +51,33 @@ if _conda_prefix:
 for _dir in _candidate_dirs:
     _add_dll_dir_if_exists(_dir)
 
-from . import pk_structs
+from ._core import (
+    Covariance,
+    EulerVector,
+    FiniteRotation,
+    Stat,
+    SurfaceVelocity,
+    average_ev,
+    average_fr,
+    calculate_mean_surface_velocity,
+    calculate_surface_velocity,
+    to_euler_vector,
+    to_euler_vector_list,
+)
 from .io import read_txt, read_txt_as_dict
 
-# Convenience aliases so users importing pk_structs can call pk.read_txt(...)
-pk_structs.read_txt = read_txt
-pk_structs.read_txt_as_dict = read_txt_as_dict
+__all__ = [
+    "Covariance",
+    "Stat",
+    "FiniteRotation",
+    "EulerVector",
+    "SurfaceVelocity",
+    "average_fr",
+    "average_ev",
+    "calculate_surface_velocity",
+    "calculate_mean_surface_velocity",
+    "to_euler_vector",
+    "to_euler_vector_list",
+    "read_txt",
+    "read_txt_as_dict",
+]

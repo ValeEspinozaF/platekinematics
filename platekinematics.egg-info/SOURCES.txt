@@ -3,6 +3,7 @@ README.txt
 pyproject.toml
 setup.py
 platekinematics/__init__.py
+platekinematics/io.py
 platekinematics.egg-info/PKG-INFO
 platekinematics.egg-info/SOURCES.txt
 platekinematics.egg-info/dependency_links.txt
@@ -12,9 +13,10 @@ src/average_finrot.c
 src/average_vector.c
 src/build_ensemble.c
 src/parse_array.c
-src/pk_structs.c
+src/core_module.c
 src/spherical_functions.c
 src/surface_velocity.c
+src/to_euler_vector.c
 src/type_conversions/covariance_conversions.c
 src/type_conversions/finrot_conversions.c
 src/type_methods/covariance_methods.c
@@ -40,5 +42,7 @@ tests/test_average_methods.py
 tests/test_build_methods.py
 tests/test_constructors.py
 tests/test_deconstructor.py
+tests/test_read_txt.py
 tests/test_spherical_functions.py
 tests/test_surface_velocity.py
+tests/test_to_euler_vector.py

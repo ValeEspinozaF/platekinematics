@@ -1,5 +1,5 @@
 #define PY_ARRAY_UNIQUE_SYMBOL PLATEKIN_ARRAY_API
-#include "pk_structs.h"
+#include "core_module.h"
 
 PyObject* py_fr_average(PyObject *self, PyObject *args);
 PyObject *py_ev_average(PyObject *self, PyObject *args);

@@ -1,6 +1,6 @@
 import math
 
-from platekinematics import pk_structs as pk
+import platekinematics as pk
 
 
 def _fr(lon, lat, angle, time):

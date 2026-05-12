@@ -1,4 +1,4 @@
-#include "../pk_structs.h"
+#include "../core_module.h"
 
 static bool stat_is_number(PyObject *value) {
     return PyFloat_Check(value) || PyLong_Check(value);
@@ -118,7 +118,7 @@ static PyMemberDef Stat_members[] = {
 
 PyTypeObject StatType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pk_structs.Stat",
+    .tp_name = "platekinematics.Stat",
     .tp_doc = "Stat(mean=0.0, stdev=0.0)\n\nMean and standard deviation container.\n\nAccepted constructors:\n- Stat(mean, stdev)\n- Stat([mean, stdev])",
     .tp_basicsize = sizeof(Stat),
     .tp_itemsize = 0,

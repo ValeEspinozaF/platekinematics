@@ -41,7 +41,7 @@ src\vcpkg\installed\x64-windows\bin
 
 
 # quick api reference
-`platekinematics.pk_structs` exports these main objects and functions:
+`platekinematics` exports these main objects and functions directly:
 
 ## Basic Objects
 `Covariance(values=None)`
@@ -97,5 +97,5 @@ src\vcpkg\installed\x64-windows\bin
 After rebuilding, a minimal import check is:
 
 ```bash
-python -c "import platekinematics; from platekinematics.pk_structs import Covariance, FiniteRotation, EulerVector"
+python -c "from platekinematics import Covariance, FiniteRotation, EulerVector"
 ```

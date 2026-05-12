@@ -1,5 +1,5 @@
-#ifndef PK_STRUCT_H
-#define PK_STRUCT_H
+#ifndef CORE_MODULE_H
+#define CORE_MODULE_H
 
 #include "platekinematics.h"
 #include "structmember.h"
@@ -11,4 +11,4 @@
 #include "types/surfacevelocity.h"
 #include "parse_array.h"
 
-#endif // PK_STRUCT_H
+#endif // CORE_MODULE_H

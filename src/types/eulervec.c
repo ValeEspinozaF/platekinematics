@@ -1,5 +1,5 @@
 
-#include "../pk_structs.h"
+#include "../core_module.h"
 #include <limits.h>
 
 PyObject *py_ev_to_numpy(PyObject *self, int Py_UNUSED(_));
@@ -337,7 +337,7 @@ static PyMethodDef EulerVector_methods[] = {
 
 PyTypeObject EulerVectorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pk_structs.EulerVector",
+    .tp_name = "platekinematics.EulerVector",
     .tp_doc = "EulerVector(Lon=0.0, Lat=0.0, AngVelocity=0.0, TimeRange=(0.0, 0.0), Covariance=None)\n\nEuler pole defined by longitude, latitude, angular velocity,\nand a two-value time range. An optional Covariance can be used\nto generate ensembles and sampled arrays.",
     .tp_members = EulerVector_members,
     .tp_repr = (reprfunc)EulerVector_repr,

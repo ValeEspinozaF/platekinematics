@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, Sequence
 
-from . import pk_structs as pk
+from . import _core as pk
 
 X_KEYS = ("x", "X")
 Y_KEYS = ("y", "Y")
@@ -195,7 +195,7 @@ def read_txt(
 ):
     """Load a TXT table into a list of platekinematics objects.
 
-    Supported struct types are pk_structs.FiniteRotation and pk_structs.EulerVector.
+    Supported struct types are platekinematics.FiniteRotation and platekinematics.EulerVector.
     Column names can be provided with `names` or taken from a header row.
     """
 
@@ -215,7 +215,7 @@ def read_txt(
     if struct_type is pk.EulerVector:
         return _parse_as_euler_vector(rows, parsed_names)
 
-    raise TXTParseError("Invalid struct_type. Use pk_structs.FiniteRotation or pk_structs.EulerVector")
+    raise TXTParseError("Invalid struct_type. Use platekinematics.FiniteRotation or platekinematics.EulerVector")
 
 
 def read_txt_as_dict(

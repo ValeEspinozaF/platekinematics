@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import platekinematics as pkg
-from platekinematics import pk_structs as pk
+import platekinematics as pk
 
 
 def _write_tmp(path: Path, content: str) -> Path:
@@ -46,7 +46,7 @@ def test_read_txt_eulervector_names_no_header(tmp_path):
     assert out[1].AngVelocity == 0.4
 
 
-def test_read_txt_is_available_on_pk_structs(tmp_path):
+def test_read_txt_is_available_on_package(tmp_path):
     file_path = _write_tmp(
         tmp_path / "fr_simple.txt",
         "lon lat angle time\n"

@@ -1,6 +1,6 @@
 #define PY_ARRAY_UNIQUE_SYMBOL PLATEKIN_ARRAY_API
 #define NO_IMPORT_ARRAY
-#include "pk_structs.h"
+#include "core_module.h"
 #include "spherical_functions.h"
 #include "type_conversions/type_conversions.h"
 

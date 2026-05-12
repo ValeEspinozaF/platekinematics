@@ -1,4 +1,4 @@
-#include "../pk_structs.h"
+#include "../core_module.h"
 
 static bool surface_velocity_is_number(PyObject *value) {
     return PyFloat_Check(value) || PyLong_Check(value);
@@ -380,7 +380,7 @@ static PyGetSetDef SurfaceVelocity_getsetters[] = {
 
 PyTypeObject SurfaceVelocityType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pk_structs.SurfaceVelocity",
+    .tp_name = "platekinematics.SurfaceVelocity",
     .tp_doc = "SurfaceVelocity(Lon, Lat, TotalVel) or SurfaceVelocity(Lon, Lat, EastVel, NorthVel[, TotalVel[, Azimuth]])\n\nSurface velocity vector container. Optional velocity fields accept float, Stat, None, or a 2-value array-like input interpreted as [Mean, StDev].",
     .tp_basicsize = sizeof(SurfaceVelocity),
     .tp_itemsize = 0,

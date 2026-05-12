@@ -8,7 +8,7 @@
         "xstring": "c",
         "xutility": "c",
         "finrot.h": "c",
-        "pk_structs.h": "c",
+        "core_module.h": "c",
         "gsl_matrix.h": "c",
         "xlocale": "c",
         "cmath": "c",

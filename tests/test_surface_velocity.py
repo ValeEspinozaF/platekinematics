@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from platekinematics import pk_structs as pk
+import platekinematics as pk
 
 
 #-- Single Euler vector tests
