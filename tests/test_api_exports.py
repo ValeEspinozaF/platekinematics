@@ -14,6 +14,8 @@ def test_api_export_names_stable():
         "calculate_mean_surface_velocity",
         "to_euler_vector",
         "to_euler_vector_list",
+        "read_txt",
+        "read_txt_as_dict",
     }
     for name in expected:
         assert hasattr(pk, name), f"Missing API name: {name}"

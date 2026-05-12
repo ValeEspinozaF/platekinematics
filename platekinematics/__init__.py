@@ -50,3 +50,10 @@ if _conda_prefix:
 
 for _dir in _candidate_dirs:
     _add_dll_dir_if_exists(_dir)
+
+from . import pk_structs
+from .io import read_txt, read_txt_as_dict
+
+# Convenience aliases so users importing pk_structs can call pk.read_txt(...)
+pk_structs.read_txt = read_txt
+pk_structs.read_txt_as_dict = read_txt_as_dict
